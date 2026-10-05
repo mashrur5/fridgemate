@@ -1,0 +1,92 @@
+@startuml sd10-offer-claim
+title SD10: Offer and Claim an Expiring Item (F15)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+hide footbox
+
+actor "Owner" as O
+actor "Roommate" as RM
+boundary ":InventoryPage" as P
+boundary ":NotificationsPage" as NP
+participant ":ApiClient" as A
+boundary ":InventoryRouter" as R
+control ":FridgemateFacade" as F
+participant ":CommandHistory" as CH
+participant ":InventoryService" as IS
+entity ":FoodItem" as FI
+participant ":ItemRepository" as IR
+participant ":HouseholdNotifier" as HN
+participant ":NotificationService" as NS
+
+O -> P ++ : "Offer to household" (note)
+P -> A ++ : offerItem(itemId, note)
+A -> R ++ : POST /items/{id}/offer (token)
+R -> F ++ : offer_item(ctx, item_id, note)
+create ":OfferItemCommand" as OC
+F -> OC : <<create>>
+F -> CH ++ : run(ctx, command)
+CH -> OC ++ : execute()
+OC -> IS ++ : mark_offered(ctx, item_id, note)
+IS -> FI ++ : can_offer()
+FI --> IS -- : true only in ExpiringSoonState
+break not expiring soon, expired, or not the owner
+  IS --> F : error
+  F --> R : 409 Conflict
+  R --> A : error
+  A --> P : error
+  P --> O : "Items can be offered within 3 days of expiry"
+end
+IS -> IR ++ : save(item) as Shared and offered
+IR --> IS --
+IS -> HN ++ : update(item, "offered")
+HN -> NS ++ : notify(member_ids, "Alex offered spinach", item_id)
+NS --> HN --
+HN --> IS --
+IS --> OC --
+OC --> CH --
+CH --> F --
+F --> R --
+R --> A -- : 200 OK
+A --> P --
+P --> O -- : item shows "Offered"
+
+RM -> NP ++ : open notifications (checked every minute)
+NP -> A ++ : request("GET", "/notifications")
+A -> F ++ : get_notifications(ctx) (through NotificationRouter)
+F -> NS ++ : get_inbox(ctx)
+NS --> F -- : notifications
+F --> A -- : notifications
+A --> NP --
+NP --> RM -- : "Alex offered spinach" with Claim
+
+RM -> NP ++ : Claim
+NP -> A ++ : request("POST", "/items/{id}/claim")
+A -> R ++ : POST /items/{id}/claim (token)
+R -> F ++ : claim_item(ctx, item_id)
+create ":ClaimItemCommand" as CC
+F -> CC : <<create>>
+F -> CC ++ : execute()
+note right of F : run directly, not through\nCommandHistory: claims are final
+CC -> IS ++ : claim(ctx, item_id)
+IS -> IR ++ : claim_if_unclaimed(item_id, member_id)
+alt first claim
+  IR --> IS : true
+  IS -> HN ++ : update(item, "claimed")
+  HN -> NS ++ : notify([owner_id], "Sam claimed your spinach", item_id)
+  NS --> HN --
+  HN --> IS --
+  IS --> CC : true
+else someone claimed it first
+  IR --> IS : false
+  IS --> CC : false
+end
+deactivate IR
+deactivate IS
+CC --> F --
+F --> R -- : result
+R --> A -- : 200 OK
+A --> NP -- : result
+NP --> RM -- : "Spinach is yours" or "Already claimed by Sam"
+@enduml

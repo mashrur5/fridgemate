@@ -63,6 +63,7 @@ package "cli (Python)" {
 package "server.api" {
   class TokenVerifier {
     -auth : Auth0Client
+    -facade : FridgemateFacade
     +verify(token: str) : dict
     +current_context(token: str) : RequestContext
   }
@@ -84,6 +85,7 @@ package "server.application" {
     +household : Household
   }
   class FridgemateFacade {
+    +load_context(auth0_id: str) : RequestContext
     +set_profile(ctx: RequestContext, name: str) : Member
     +update_preferences(ctx: RequestContext, restrictions: list[str], dislikes: list[str]) : Member
     +request_password_reset(ctx: RequestContext)
@@ -135,6 +137,7 @@ package "Subsystem behind the facade (Diagrams 4 to 6)" {
 }
 
 class Auth0Client <<see Diagram 7>>
+interface MealPlanRepository <<interface>> <<see Diagram 7>>
 
 App "1" *-- "1" ProfileSetupPage
 App "1" *-- "1" HouseholdPage
@@ -171,6 +174,7 @@ NotificationRouter "1" --> "1" FridgemateFacade
 InventoryRouter ..> TokenVerifier : uses
 TokenVerifier ..> RequestContext : creates
 TokenVerifier "1" --> "1" Auth0Client
+TokenVerifier "1" --> "1" FridgemateFacade : load_context()
 
 FridgemateFacade "1" --> "1" InventoryService
 FridgemateFacade "1" --> "1" HouseholdService
@@ -187,6 +191,7 @@ FridgemateFacade "1" --> "1" RecipeAgent
 FridgemateFacade "1" --> "1" MealPlanAgent
 FridgemateFacade "1" --> "1" FridgeCommandAgent
 FridgemateFacade "1" --> "1" ReceiptParser
+FridgemateFacade "1" --> "1" MealPlanRepository : saves plans
 FridgemateFacade ..> RequestContext : receives
 
 note top of FridgemateFacade

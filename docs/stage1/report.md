@@ -951,3 +951,104 @@ Logging in (UC16) is a precondition of every other use case instead of an «incl
 | **Alternative/Exception Flows** | 3a. The email or password is wrong: Auth0 shows an error.<br>3b. The email is already registered: Auth0 asks the member to log in instead.<br>5a. The session has expired: the system sends the member back to the login page.<br>6a. The member chooses Change password: Auth0 emails a reset link.<br>6b. The member logs out: the system clears the login. |
 | **Postconditions** | The member is logged in, or logged out if they chose to. |
 | **Related Feature(s)** | Supporting functionality (not counted as a feature) |
+
+### 2.3 Sequence Diagrams
+
+Fridgemate has 11 sequence diagrams that together cover all 15 features and the account functions. Closely related features share a diagram when they follow the same path, as the instructions allow. For example, SD04 covers F07, F08, and F10, because the Quick Finder runs the same agent with a different ingredient source.
+
+The diagrams follow the notation from the course slides:
+
+| Symbol | Meaning |
+| --- | --- |
+| Stick figure | The actor who starts the interaction |
+| Circle with a line on its left | A boundary object: a web page, or an API router receiving a request |
+| Circle with an arrow | A controller object: `FridgemateFacade` |
+| Circle on a line | A domain object, such as `:FoodItem` or `:MealPlan` |
+| Plain box | Any other object, such as a service, agent, tool, or adapter. Boxes marked «AI agent» or «external» are AI components and outside services. |
+| Solid arrow | A method call, using the exact method name from the class diagram |
+| Dashed arrow | A returned result |
+| Thin bar on a lifeline | The object is busy handling a call (activation bar) |
+| alt, opt, loop, break boxes | A choice between paths, an optional step, a repeated step, or an error path that ends the interaction. The condition is shown in square brackets. |
+| «create» | A new object being created, such as a command |
+
+Two conventions keep the diagrams readable. Every request carries the member's Auth0 token and is checked by `TokenVerifier.current_context()` before reaching the facade; this is drawn in SD01 and SD11 and noted in the others. The CLI follows the same path as the web app, through `FridgemateClient` instead of `ApiClient`.
+
+| Diagram | Features | Use cases | Patterns shown |
+| --- | --- | --- | --- |
+| SD01 Add Item | F01, F02, F04 | UC01, UC02, UC04 | Facade, Strategy, Command, Observer |
+| SD02 Import Receipt | F03 | UC03 | Adapter |
+| SD03 Refresh Freshness and Show Alerts | F05 | UC05 | State, Observer |
+| SD04 Suggest Recipes | F07, F08, F10 | UC07, UC08, UC10 | Strategy, Adapter |
+| SD05 Cook Recipe and Undo | F09 | UC09 | Command, Observer |
+| SD06 Build Shopping List | F11 | UC11 | Observer |
+| SD07 Run Fridge Command | F12 | UC12 | Command |
+| SD08 Plan Waste-Rescue Meals | F13 | UC13 | State |
+| SD09 Split Shared Costs | F14 | UC14 | Facade |
+| SD10 Offer and Claim an Expiring Item | F15 | UC15 | Command, Observer, State |
+| SD11 Log In and Set Up Profile and Household | F06, accounts | UC06, UC16 | Facade |
+
+#### SD01: Add Item
+
+![SD01: Add Item](diagrams/sd01-add-item.png)
+
+The member saves a new item, and the request passes the token check before reaching the facade. If the location or expiry date is empty, the facade asks `PlacementService` and `ExpiryService`, which try Gemini first and fall back to the rule table if it fails. The item is then saved through an `AddItemCommand` so it can be undone, and `InventoryService` notifies its observers. Invalid input stops the flow early with an error.
+
+#### SD02: Import Receipt
+
+![SD02: Import Receipt](diagrams/sd02-import-receipt.png)
+
+`ReceiptParser` sends the photo to Gemini and checks the answer with `ResponseParser`, retrying once if the format is wrong. Each item then gets a location and expiry estimate, and the member reviews everything in the popup. Saving adds the items directly through `InventoryService`, without a command, so imports have no undo.
+
+#### SD03: Refresh Freshness and Show Alerts
+
+![SD03: Refresh Freshness and Show Alerts](diagrams/sd03-expiry-alerts.png)
+
+Each time items are loaded, every `FoodItem` picks its freshness state from its expiry date. `ExpiryAlertNotifier` then asks each item for its alert priority, and the item hands the question to its current `FreshnessState`. This is the State pattern at work.
+
+#### SD04: Suggest Recipes
+
+![SD04: Suggest Recipes](diagrams/sd04-suggest-recipes.png)
+
+The facade gives `RecipeAgent` a `FridgeIngredientSource`, which removes roommates' and expired items before the AI sees anything. The agent then loops, up to 6 tool steps: Gemini picks a tool, the agent runs it, and every step is recorded for the "Why this recipe?" panel. `SearchRecipesTool` queries TheMealDB one ingredient at a time, and `ValidateRecipeTool` checks each recipe against the real stock. For F10, the only difference is a `ManualIngredientSource`.
+
+#### SD05: Cook Recipe and Undo
+
+![SD05: Cook Recipe and Undo](diagrams/sd05-cook-recipe.png)
+
+`CookingService` converts units, checks there's enough stock, and creates a `CookRecipeCommand`. Running it deducts each ingredient, and `ShoppingListService` adds any item that runs low. Pressing Undo calls `undo_last()`, which restores every quantity and removes the leftovers.
+
+#### SD06: Build Shopping List
+
+![SD06: Build Shopping List](diagrams/sd06-shopping-list.png)
+
+Missing ingredients from a recipe are added to the member's list. Gemini matches names that mean the same thing and picks store sections, and `UnitConverter` merges amounts. If Gemini is unavailable, only exact names are merged.
+
+#### SD07: Run Fridge Command
+
+![SD07: Run Fridge Command](diagrams/sd07-fridge-command.png)
+
+`FridgeCommandAgent` reads the recent conversation, looks up the items the message mentions, and asks a follow-up question if a name is unclear. Otherwise, `ProposeInventoryChangeTool` checks each change, and the agent builds a `ProposedChanges` object. Nothing changes until the member confirms; then each command runs through `CommandHistory`.
+
+#### SD08: Plan Waste-Rescue Meals
+
+![SD08: Plan Waste-Rescue Meals](diagrams/sd08-plan-meals.png)
+
+`MealPlanAgent` assigns each expiring item to a day, finds recipes for each meal, and checks the whole plan with `StockValidator`, re-planning any day that fails. The facade saves the plan. When the member opens it later, `MealPlan.check_against()` checks it against the current stock, and only the affected meals are re-planned.
+
+#### SD09: Split Shared Costs
+
+![SD09: Split Shared Costs](diagrams/sd09-split-costs.png)
+
+`CostSplitService` loads the household's items and recorded payments, keeps Shared items with a price, and works out balances and the fewest payments. Marking a payment as paid saves it and recalculates.
+
+#### SD10: Offer and Claim an Expiring Item
+
+![SD10: Offer and Claim an Expiring Item](diagrams/sd10-offer-claim.png)
+
+The owner's offer runs as an `OfferItemCommand`, which checks `can_offer()` so only items in the Expiring soon state can be offered. `HouseholdNotifier` then notifies the other members. A roommate's claim runs as a `ClaimItemCommand` outside the undo history, and `claim_if_unclaimed()` makes sure only the first claim wins.
+
+#### SD11: Log In and Set Up Profile and Household
+
+![SD11: Log In and Set Up Profile and Household](diagrams/sd11-login-setup.png)
+
+Auth0 handles the login page, so Fridgemate never sees the password. `TokenVerifier` checks the token with Auth0's signing keys and asks the facade to load the member. On first login, the member enters their name, then creates a household or joins one with an invite code.

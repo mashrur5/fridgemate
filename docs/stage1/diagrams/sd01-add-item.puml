@@ -1,0 +1,77 @@
+@startuml sd01-add-item
+title SD01: Add Item (F01, with F02 and F04)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+hide footbox
+
+actor "Member" as M
+boundary ":InventoryPage" as P
+participant ":ApiClient" as A
+boundary ":InventoryRouter" as R
+participant ":TokenVerifier" as T
+control ":FridgemateFacade" as F
+participant ":PlacementService" as PS
+participant ":LLMPlacementStrategy" as LPS
+participant ":RuleBasedPlacementStrategy" as RPS
+participant ":GeminiClient" as G
+participant ":ExpiryService" as ES
+participant ":CommandHistory" as CH
+participant ":InventoryService" as IS
+participant ":ItemRepository" as IR
+participant ":ExpiryAlertNotifier" as EA
+
+M -> P ++ : save new item (name, quantity, unit, owner)
+P -> A ++ : request("POST", "/items", item)
+A -> R ++ : POST /items (token, item)
+R -> T ++ : current_context(token)
+T --> R -- : ctx
+break name empty or quantity <= 0
+  R --> A : 422 validation error
+  A --> P : error
+  P --> M : shows the error, nothing saved
+end
+R -> F ++ : add_item(ctx, item)
+opt location left empty
+  F -> PS ++ : suggest_location(item.name)
+  PS -> LPS ++ : choose_location(item_name)
+  LPS -> G ++ : generate(prompt)
+  alt Gemini returns Fridge, Freezer or Pantry
+    G --> LPS : answer
+    LPS --> PS : (location, reason)
+  else Gemini fails or the answer is invalid
+    G --> LPS : error
+    LPS --> PS : error
+    PS -> RPS ++ : choose_location(item_name)
+    RPS --> PS -- : (location, reason)
+  end
+  deactivate G
+  deactivate LPS
+  PS --> F -- : (location, reason)
+end
+opt expiry date left empty
+  F -> ES ++ : estimate_expiry(item.name, location, today)
+  note right of ES : same LLM-first, rule-table\nfallback as PlacementService
+  ES --> F -- : expiry_date (marked estimated)
+end
+create ":AddItemCommand" as C
+F -> C : <<create>>
+F -> CH ++ : run(ctx, command)
+CH -> C ++ : execute()
+C -> IS ++ : add(ctx, item)
+IS -> IR ++ : save(item)
+IR --> IS --
+IS -> IS ++ : notify_observers(item, "added")
+IS -> EA ++ : update(item, "added")
+EA --> IS --
+note right of EA : ShoppingListService and\nHouseholdNotifier are\nnotified the same way
+deactivate IS
+IS --> C -- : item
+C --> CH --
+CH --> F --
+F --> R -- : item
+R --> A -- : 201 Created (item)
+A --> P -- : item
+P --> M -- : updated list with Undo button
+@enduml

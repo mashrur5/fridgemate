@@ -94,6 +94,7 @@ package "server.infrastructure.persistence" {
   interface HouseholdRepository <<interface>> {
     +save(household: Household)
     +find_by_invite_code(code: str) : Optional[Household]
+    +find_by_member(member_id: UUID) : Optional[Household]
   }
   interface MealPlanRepository <<interface>> {
     +save(plan: MealPlan)
