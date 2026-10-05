@@ -1077,3 +1077,406 @@ This table shows that every feature from Section 1.2 is actually supported by th
 | Accounts | Register, log in, change password (supporting, not counted) | Deterministic | UC16 Manage Account | App, ApiClient, AccountRouter, TokenVerifier, Auth0Client, FridgemateFacade, AccountService | current_context(), verify(), get_signing_keys(), load_context(), request_password_reset() | SD11 | Facade |
 
 Two patterns support every feature, so they are listed only where they matter most. Every request passes through `FridgemateFacade` (Facade), so it appears where it is the main pattern. `LLMClientFactory` (Factory Method) creates the LLM client once at startup for all AI features, so it is listed under F02, the first feature that uses it.
+
+
+## 4. How Each Feature Is Realized
+
+This section explains, for each feature, how the classes and methods from the design work together at runtime. Each explanation names the related use case and sequence diagram, so it can be read alongside Sections 2.2, 2.3, and 3.
+
+### 4.1 F01: Inventory Management
+
+**Related Use Case:** UC01 Manage Inventory Item
+
+**Related Sequence Diagram:** SD01 Add Item
+
+**Classes involved:**
+- `InventoryPage`: shows the inventory and the add, edit, and remove forms.
+- `ApiClient`: sends the request to the server with the member's token.
+- `InventoryRouter`: receives the request and passes it to the facade.
+- `FridgemateFacade`: coordinates the request.
+- `AddItemCommand`, `UpdateItemCommand`, `RemoveItemCommand`: carry out each change and know how to undo it.
+- `CommandHistory`: runs the commands and keeps each member's undo stack.
+- `InventoryService`: makes the change and notifies its observers.
+- `ItemRepository`: stores items in the database.
+
+**Important methods:**
+- `ApiClient.request()`
+- `FridgemateFacade.add_item()`, `FridgemateFacade.update_item()`, `FridgemateFacade.remove_item()`, `FridgemateFacade.undo()`
+- `CommandHistory.run()`, `CommandHistory.undo_last()`
+- `AddItemCommand.execute()`
+- `InventoryService.add()`, `InventoryService.notify_observers()`
+- `ItemRepository.save()`
+
+**Execution:** When the member saves an item on the Inventory page, `ApiClient.request()` sends it to `InventoryRouter`, which checks the token and calls `FridgemateFacade.add_item()`. The facade fills in a missing location or expiry date (F02, F04), creates an `AddItemCommand`, and runs it with `CommandHistory.run()`. The command's `execute()` calls `InventoryService.add()`, which saves the item with `ItemRepository.save()` and then calls `notify_observers()` so the alerts and shopping list stay current. Edits and removals work the same way with `UpdateItemCommand` and `RemoveItemCommand`, and Undo calls `CommandHistory.undo_last()`, which runs the last command's `undo()`.
+
+### 4.2 F02: AI Storage Placement
+
+**Related Use Case:** UC02 Suggest Storage Location
+
+**Related Sequence Diagram:** SD01 Add Item
+
+**Classes involved:**
+- `FridgemateFacade`: asks for a suggestion when the location is empty.
+- `PlacementService`: holds a primary and a fallback strategy and picks which to use.
+- `LLMPlacementStrategy`: asks the LLM where the item belongs.
+- `RuleBasedPlacementStrategy`: uses a fixed rule table when the LLM can't help.
+- `GeminiClient`: adapts the Gemini API to the `LLMClient` interface.
+- `LLMClientFactory`: creates the LLM client at startup.
+
+**Important methods:**
+- `PlacementService.suggest_location()`
+- `LLMPlacementStrategy.choose_location()`
+- `GeminiClient.generate()`
+- `RuleBasedPlacementStrategy.choose_location()`
+- `LLMClientFactory.create_client()`
+
+**Execution:** When an item arrives without a location, `FridgemateFacade` calls `PlacementService.suggest_location()`. The service tries its primary strategy first: `LLMPlacementStrategy.choose_location()` asks Gemini through `GeminiClient.generate()` and checks that the answer is Fridge, Freezer, or Pantry. If Gemini fails or the answer is invalid, the service switches to `RuleBasedPlacementStrategy.choose_location()`. Either way, the location and a short reason go back to the page, where the member can keep or change them. The `GeminiClient` was created at startup by `LLMClientFactory.create_client()`, so the service never names a specific LLM.
+
+### 4.3 F03: Receipt Import
+
+**Related Use Case:** UC03 Import Receipt
+
+**Related Sequence Diagram:** SD02 Import Receipt
+
+**Classes involved:**
+- `ReceiptImportPage`: takes the photo and shows the review popup.
+- `ApiClient` and `ReceiptRouter`: carry the photo to the server.
+- `FridgemateFacade`: coordinates reading and saving.
+- `ReceiptParser`: turns the photo into a list of items.
+- `PromptBuilder`: builds the prompt and marks receipt text as data only.
+- `GeminiClient`: sends the image to Gemini.
+- `ResponseParser`: checks that Gemini's answer has the expected format.
+- `InventoryService`: adds the saved items.
+
+**Important methods:**
+- `ApiClient.importReceipt()`
+- `FridgemateFacade.import_receipt()`, `FridgemateFacade.save_receipt_items()`
+- `ReceiptParser.parse()`
+- `PromptBuilder.build()`
+- `GeminiClient.read_image()`
+- `ResponseParser.parse()`
+- `InventoryService.add()`
+
+**Execution:** When the member uploads a photo, `ApiClient.importReceipt()` sends it to `ReceiptRouter`, which calls `FridgemateFacade.import_receipt()`. The facade passes the image to `ReceiptParser.parse()`, which builds a prompt with `PromptBuilder.build()`, sends the image with `GeminiClient.read_image()`, and checks the answer with `ResponseParser.parse()`, retrying once if the format is wrong. Non-food lines are dropped, and the facade adds a location and expiry estimate to each item before the list goes to the review popup. When the member presses Save, `FridgemateFacade.save_receipt_items()` adds each item with `InventoryService.add()`. No command is created, so imports have no undo.
+
+### 4.4 F04: Expiry Estimation and Tracking
+
+**Related Use Case:** UC04 Estimate Expiry
+
+**Related Sequence Diagrams:** SD01 Add Item, SD03 Refresh Freshness and Show Alerts
+
+**Classes involved:**
+- `ExpiryService`: holds a primary and a fallback estimator.
+- `LLMExpiryEstimator`: asks the LLM how long an item lasts.
+- `RuleBasedExpiryEstimator`: uses a fixed table when the LLM can't help.
+- `GeminiClient`: adapts the Gemini API.
+- `FoodItem`: holds the expiry date and its current freshness state.
+- `FreshnessState`, with `FreshState`, `ExpiringSoonState`, and `ExpiredState`: decide what the item is allowed to do.
+
+**Important methods:**
+- `ExpiryService.estimate_expiry()`
+- `LLMExpiryEstimator.estimate_days()`
+- `RuleBasedExpiryEstimator.estimate_days()`
+- `FoodItem.refresh_state()`
+- `FreshnessState.label()`
+
+**Execution:** When an item has no expiry date, the facade calls `ExpiryService.estimate_expiry()`. The service asks `LLMExpiryEstimator.estimate_days()` first, which uses Gemini, and falls back to `RuleBasedExpiryEstimator.estimate_days()` if needed. The number of days is added to the date the item was added, and the result is marked as estimated. Whenever items are loaded, `FoodItem.refresh_state()` compares the expiry date with today and picks `FreshState`, `ExpiringSoonState` (within 3 days), or `ExpiredState`. From then on, the item hands questions like `label()` and `can_offer()` to its current state, so every feature follows the same freshness rules.
+
+### 4.5 F05: Expiring-Soon Alerts and "Use It First" View
+
+**Related Use Case:** UC05 View Expiry Alerts
+
+**Related Sequence Diagram:** SD03 Refresh Freshness and Show Alerts
+
+**Classes involved:**
+- `InventoryPage`: shows the alert banner and the "Use it first" tab.
+- `FridgemateFacade`: coordinates the request.
+- `ExpiryAlertNotifier`: builds the alert list, and is an observer of the inventory.
+- `InventoryService`: loads the items and notifies observers when they change.
+- `FoodItem` and `FreshnessState`: give each item's alert priority.
+
+**Important methods:**
+- `FridgemateFacade.get_alerts()`
+- `ExpiryAlertNotifier.get_alerts()`, `ExpiryAlertNotifier.update()`
+- `InventoryService.get_items()`
+- `FoodItem.refresh_state()`, `FoodItem.alert_priority()`
+
+**Execution:** When the member logs in or opens the "Use it first" tab, `InventoryRouter` calls `FridgemateFacade.get_alerts()`, which calls `ExpiryAlertNotifier.get_alerts()`. The notifier loads items with `InventoryService.get_items()`, where each item runs `refresh_state()`. It keeps only the member's own and Shared items, asks each one for `alert_priority()`, which the item hands to its `FreshnessState`, and sorts them by days left. Since `ExpiryAlertNotifier` is also an observer, `InventoryService` calls its `update()` whenever the inventory changes, so the alerts never go out of date.
+
+### 4.6 F06: Household Members, Ownership, and Preferences
+
+**Related Use Case:** UC06 Manage Household and Preferences
+
+**Related Sequence Diagram:** SD11 Log In and Set Up Profile and Household
+
+**Classes involved:**
+- `ProfileSetupPage`: asks for the name and whether to create or join a household.
+- `HouseholdPage`: shows members, the invite code, and preferences.
+- `FridgemateFacade`: coordinates the requests.
+- `AccountService`: saves the profile and preferences.
+- `HouseholdService`: creates and joins households.
+- `HouseholdRepository`: stores households and finds them by invite code.
+- `Member`: stores preferences and checks ingredients against them.
+
+**Important methods:**
+- `FridgemateFacade.set_profile()`, `FridgemateFacade.create_household()`, `FridgemateFacade.join_household()`
+- `HouseholdService.generate_invite_code()`
+- `HouseholdRepository.find_by_invite_code()`
+- `AccountService.update_preferences()`
+- `Member.allows()`
+
+**Execution:** On first login, the member enters their name, and `FridgemateFacade.set_profile()` saves it through `AccountService`. Choosing "Create a household" calls `FridgemateFacade.create_household()`, and `HouseholdService` creates it with a new code from `generate_invite_code()`. Joining instead calls `join_household()`, which finds the household with `HouseholdRepository.find_by_invite_code()` and adds the member. Preferences are saved with `AccountService.update_preferences()`, and every AI feature later checks ingredients with `Member.allows()`. Ownership itself is the owner field on each `FoodItem`, which the Inventory page uses for its owner filter.
+
+### 4.7 F07: Constraint-Based Recipe Agent
+
+**Related Use Case:** UC07 Get Recipe Suggestions
+
+**Related Sequence Diagram:** SD04 Suggest Recipes
+
+**Classes involved:**
+- `RecipePage`: collects the four options and shows the recipe cards.
+- `FridgemateFacade`: sets up the agent and starts it.
+- `RecipeAgent`: runs the tool loop and builds the final answer.
+- `FridgeIngredientSource`: supplies only the member's own and Shared, unexpired items.
+- `FoodItem`: says whether it can be used in a recipe.
+- `GeminiClient`: lets the LLM choose tools and write the answer.
+- `SearchRecipesTool` and `MealDBRecipeSource`: search TheMealDB for real recipes.
+- `ValidateRecipeTool` and `StockValidator`: check each recipe against the real stock.
+- `ResponseParser`: checks the final answer's format.
+- `AgentTrace`: records each step for the "Why this recipe?" panel.
+
+**Important methods:**
+- `ApiClient.suggestRecipes()`
+- `FridgemateFacade.suggest_recipes()`
+- `RecipeAgent.set_source()`, `RecipeAgent.run()`
+- `FridgeIngredientSource.get_ingredients()`
+- `FoodItem.can_use_in_recipe()`
+- `GeminiClient.generate_with_tools()`
+- `MealDBRecipeSource.search_by_ingredients()`
+- `StockValidator.validate()`
+- `AgentTrace.record()`
+
+**Execution:** When the member picks the options and presses "Get recipes," `ApiClient.suggestRecipes()` sends them to the server. `FridgemateFacade.suggest_recipes()` gives `RecipeAgent` a `FridgeIngredientSource` with `set_source()`, then calls `run()`. The source's `get_ingredients()` keeps only the member's own and Shared items where `can_use_in_recipe()` is true, so the LLM never sees a roommate's food or anything expired. The agent then loops, up to 6 tool steps: `GeminiClient.generate_with_tools()` picks a tool, `SearchRecipesTool` calls `MealDBRecipeSource.search_by_ingredients()`, `ValidateRecipeTool` calls `StockValidator.validate()`, and `AgentTrace.record()` saves each step. Finally, `ResponseParser` checks the answer, and up to 5 ranked recipes go back to the page with their explanations.
+
+### 4.8 F08: Missing-Ingredient Detection and Substitution
+
+**Related Use Case:** UC08 Check Missing Ingredients
+
+**Related Sequence Diagram:** SD04 Suggest Recipes
+
+**Classes involved:**
+- `RecipeAgent`: asks for the stock check and for substitutes.
+- `ValidateRecipeTool`: the tool the agent calls to check a recipe.
+- `StockValidator`: compares a recipe's ingredients with the member's stock.
+- `UnitConverter`: converts amounts to the same unit.
+- `GeminiClient`: suggests substitutes from the member's usable items.
+
+**Important methods:**
+- `ValidateRecipeTool.execute()`
+- `StockValidator.validate()`
+- `UnitConverter.convert()`
+- `GeminiClient.generate_with_tools()`
+
+**Execution:** For every candidate recipe, `RecipeAgent` calls `ValidateRecipeTool.execute()`, which calls `StockValidator.validate()`. The validator matches each ingredient to the member's items, uses `UnitConverter.convert()` to compare amounts in the same unit, and returns the ingredients that are short or missing. The agent then asks Gemini through `generate_with_tools()` for substitutes, chosen only from the member's usable items. Each substitute is checked against the stock again before it appears on the recipe card, so the AI can't suggest something the member doesn't have.
+
+### 4.9 F09: Cook Recipe
+
+**Related Use Case:** UC09 Cook Recipe
+
+**Related Sequence Diagram:** SD05 Cook Recipe and Undo
+
+**Classes involved:**
+- `RecipePage`: shows the cooking confirmation and the Undo button.
+- `FridgemateFacade`: coordinates cooking and undo.
+- `CookingService`: checks the stock and prepares the command.
+- `UnitConverter`: converts recipe amounts to each item's unit.
+- `ExpiryService`: estimates the leftovers' expiry date.
+- `CookRecipeCommand`: deducts the ingredients and can undo it.
+- `CommandHistory`: runs the command and keeps it for undo.
+- `InventoryService`: deducts each amount and notifies the shopping list.
+
+**Important methods:**
+- `FridgemateFacade.cook_recipe()`
+- `CookingService.cook()`
+- `UnitConverter.convert()`
+- `ExpiryService.estimate_expiry()`
+- `CommandHistory.run()`, `CommandHistory.undo_last()`
+- `CookRecipeCommand.execute()`, `CookRecipeCommand.undo()`
+- `InventoryService.deduct()`
+
+**Execution:** When the member confirms "Cook this," `FridgemateFacade.cook_recipe()` calls `CookingService.cook()`. The service checks there's enough stock, converts each amount with `UnitConverter.convert()`, estimates the leftovers' expiry with `ExpiryService.estimate_expiry()`, and returns a new `CookRecipeCommand`. The facade runs it with `CommandHistory.run()`, and its `execute()` calls `InventoryService.deduct()` for each ingredient, which also tells the shopping list about anything running low. Pressing Undo calls `CommandHistory.undo_last()`, which runs the command's `undo()` to restore every quantity and remove the leftovers.
+
+### 4.10 F10: Quick Recipe Finder
+
+**Related Use Case:** UC10 Find Recipes by Ingredients
+
+**Related Sequence Diagram:** SD04 Suggest Recipes
+
+**Classes involved:**
+- `QuickFinderPage`: collects the typed ingredients and options.
+- `FridgemateFacade`: sets up the agent with the typed list.
+- `RecipeAgent`: the same agent as F07.
+- `ManualIngredientSource`: turns the typed list into ingredients.
+- `SearchRecipesTool` and `MealDBRecipeSource`: search for recipes.
+- `StockValidator`: checks recipes against the typed list.
+
+**Important methods:**
+- `FridgemateFacade.find_recipes()`
+- `RecipeAgent.set_source()`, `RecipeAgent.run()`
+- `ManualIngredientSource.get_ingredients()`
+- `MealDBRecipeSource.search_by_ingredients()`
+- `StockValidator.validate()`
+
+**Execution:** F10 reuses the F07 agent. `FridgemateFacade.find_recipes()` calls `RecipeAgent.set_source()` with a `ManualIngredientSource` built from the typed list, then calls `run()`. Every step after that is the same as F07, searching with `MealDBRecipeSource.search_by_ingredients()` and checking with `StockValidator.validate()`, except recipes are checked against the typed list instead of the fridge. This is the Strategy pattern: only the ingredient source changes.
+
+### 4.11 F11: Shopping List Generation
+
+**Related Use Case:** UC11 Generate Shopping List
+
+**Related Sequence Diagrams:** SD06 Build Shopping List, SD05 Cook Recipe and Undo
+
+**Classes involved:**
+- `ShoppingListPage`: shows the list grouped by store section.
+- `FridgemateFacade`: coordinates adding to and loading the list.
+- `ShoppingListService`: merges items, and is an observer of the inventory.
+- `GeminiClient`: matches similar names and picks store sections.
+- `UnitConverter`: converts amounts so duplicates can be merged.
+- `ShoppingListRepository`: stores each member's list.
+
+**Important methods:**
+- `FridgemateFacade.add_to_shopping_list()`, `FridgemateFacade.build_shopping_list()`
+- `ShoppingListService.add_missing()`, `ShoppingListService.update()`
+- `GeminiClient.generate()`
+- `UnitConverter.convert()`
+- `ShoppingListRepository.save()`
+
+**Execution:** When the member adds missing ingredients from a recipe, `FridgemateFacade.add_to_shopping_list()` calls `ShoppingListService.add_missing()`. The service loads the member's list, asks Gemini with `generate()` to match similar names and pick store sections, merges amounts with `UnitConverter.convert()`, and saves the list with `ShoppingListRepository.save()`. Low items arrive a different way: since `ShoppingListService` is an observer, `InventoryService` calls its `update()` after every change, and items that run low are added automatically. Opening the page calls `build_shopping_list()`, which returns the saved list.
+
+### 4.12 F12: Natural-Language Fridge Commands
+
+**Related Use Case:** UC12 Issue Natural-Language Command
+
+**Related Sequence Diagram:** SD07 Run Fridge Command
+
+**Classes involved:**
+- `CommandChatPage`: takes the message and shows the proposed changes.
+- `FridgemateFacade`: starts the agent and runs confirmed changes.
+- `FridgeCommandAgent`: turns the message into proposed changes.
+- `ConversationMemory`: keeps recent turns so follow-ups make sense.
+- `GeminiClient`: lets the LLM choose tools.
+- `GetInventoryTool`: finds the items the message mentions.
+- `ProposeInventoryChangeTool`: checks each change before it's proposed.
+- `ProposedChanges`: holds the commands until the member confirms.
+- `CommandHistory`: runs the confirmed commands so they can be undone.
+
+**Important methods:**
+- `FridgemateFacade.run_command()`, `FridgemateFacade.confirm_changes()`
+- `FridgeCommandAgent.run()`
+- `ConversationMemory.recent()`
+- `GeminiClient.generate_with_tools()`
+- `GetInventoryTool.execute()`
+- `ProposeInventoryChangeTool.execute()`
+- `CommandHistory.run()`
+
+**Execution:** When the member sends a message, `FridgemateFacade.run_command()` calls `FridgeCommandAgent.run()`. The agent reads earlier turns with `ConversationMemory.recent()`, lets Gemini choose tools with `generate_with_tools()`, and finds the mentioned items with `GetInventoryTool.execute()`. If a name matches more than one item, it asks a follow-up question instead of guessing. Otherwise, each change is checked by `ProposeInventoryChangeTool.execute()`, and the agent returns a `ProposedChanges` object for the member to review. Nothing changes until the member confirms; then `FridgemateFacade.confirm_changes()` runs each command with `CommandHistory.run()`, so every change can be undone.
+
+### 4.13 F13: Waste-Rescue Meal Plan
+
+**Related Use Case:** UC13 Plan Waste-Rescue Meals
+
+**Related Sequence Diagram:** SD08 Plan Waste-Rescue Meals
+
+**Classes involved:**
+- `MealPlanPage`: collects the options and shows the meal calendar.
+- `FridgemateFacade`: starts planning, saves the plan, and checks it later.
+- `MealPlanAgent`: builds the plan and re-plans when something changes.
+- `GetInventoryTool` and `FridgeIngredientSource`: supply the member's usable items.
+- `SearchRecipesTool`: finds recipes for each day's items.
+- `StockValidator`: checks that the whole plan fits the stock.
+- `MealPlan`: checks itself against the current stock.
+- `MealPlanRepository`: stores the plan.
+
+**Important methods:**
+- `FridgemateFacade.plan_meals()`, `FridgemateFacade.replan_meals()`
+- `MealPlanAgent.run()`, `MealPlanAgent.replan()`
+- `FridgeIngredientSource.get_ingredients()`
+- `StockValidator.validate()`
+- `MealPlan.check_against()`
+- `MealPlanRepository.save()`
+
+**Execution:** When the member presses "Plan my meals," `FridgemateFacade.plan_meals()` calls `MealPlanAgent.run()`. The agent gets usable items through `GetInventoryTool`, which uses `FridgeIngredientSource.get_ingredients()`, assigns each expiring item to a day before it expires, and finds recipes with `SearchRecipesTool`. It checks the whole plan with `StockValidator.validate()` so the totals fit the stock and no dish repeats, re-planning only the days that fail, and the facade saves the result with `MealPlanRepository.save()`. Later, `replan_meals()` loads the plan and calls `MealPlan.check_against()` with the current items. If something changed, `MealPlanAgent.replan()` updates only the affected meals.
+
+### 4.14 F14: Shared Grocery Cost Split
+
+**Related Use Case:** UC14 Split Shared Costs
+
+**Related Sequence Diagram:** SD09 Split Shared Costs
+
+**Classes involved:**
+- `CostSplitPage`: shows balances and suggested payments.
+- `FridgemateFacade`: coordinates the request.
+- `CostSplitService`: does the split and works out the payments.
+- `ItemRepository`: supplies the household's items.
+- `SettlementRepository`: stores payments already made.
+- `Settlement`: represents one payment between two members.
+
+**Important methods:**
+- `FridgemateFacade.split_costs()`, `FridgemateFacade.mark_paid()`
+- `CostSplitService.split()`, `CostSplitService.mark_paid()`
+- `ItemRepository.find_by_household()`
+- `SettlementRepository.find_by_household()`, `SettlementRepository.save()`
+
+**Execution:** Opening the Cost Split page calls `FridgemateFacade.split_costs()`, which calls `CostSplitService.split()`. The service loads the items with `ItemRepository.find_by_household()` and past payments with `SettlementRepository.find_by_household()`. It keeps Shared items with a price that weren't offered through F15, splits each cost equally, and works out the fewest payments, returned as `Settlement` objects. Pressing "Mark as paid" calls `mark_paid()`, which saves the payment with `SettlementRepository.save()` and recalculates the balances.
+
+### 4.15 F15: Share Before It Spoils
+
+**Related Use Case:** UC15 Offer and Claim Expiring Item
+
+**Related Sequence Diagram:** SD10 Offer and Claim an Expiring Item
+
+**Classes involved:**
+- `InventoryPage`: shows the "Offer to household" button.
+- `NotificationsPage`: shows the offer to roommates, with a Claim button.
+- `FridgemateFacade`: coordinates offering and claiming.
+- `OfferItemCommand`: offers the item, and can be undone to withdraw the offer.
+- `ClaimItemCommand`: transfers ownership; claims are final.
+- `CommandHistory`: runs the offer command.
+- `InventoryService`: marks the item as offered and handles claims.
+- `FoodItem`: says whether it can be offered.
+- `ItemRepository`: saves the item and makes sure only the first claim wins.
+- `HouseholdNotifier`: an observer that reacts to offers and claims.
+- `NotificationService`: creates and delivers the notifications.
+
+**Important methods:**
+- `FridgemateFacade.offer_item()`, `FridgemateFacade.claim_item()`
+- `OfferItemCommand.execute()`
+- `InventoryService.mark_offered()`, `InventoryService.claim()`
+- `FoodItem.can_offer()`
+- `HouseholdNotifier.update()`
+- `NotificationService.notify()`
+- `ClaimItemCommand.execute()`
+- `ItemRepository.claim_if_unclaimed()`
+
+**Execution:** When the owner presses "Offer to household," `FridgemateFacade.offer_item()` runs an `OfferItemCommand` through `CommandHistory`. Its `execute()` calls `InventoryService.mark_offered()`, which first checks `FoodItem.can_offer()`; only items in the Expiring soon state pass. The item is saved as Shared and offered, and `HouseholdNotifier.update()` calls `NotificationService.notify()` for every other member. When a roommate presses Claim, `FridgemateFacade.claim_item()` runs a `ClaimItemCommand` directly, since claims are final, and `InventoryService.claim()` calls `ItemRepository.claim_if_unclaimed()` so only the first claim wins. The owner is then told who claimed it.
+
+### 4.16 Supporting Functionality: Accounts (not counted as a feature)
+
+**Related Use Case:** UC16 Manage Account
+
+**Related Sequence Diagram:** SD11 Log In and Set Up Profile and Household
+
+**Classes involved:**
+- `App`: sends the member to Auth0's login page and back.
+- `ApiClient`: attaches the login token to every request.
+- `TokenVerifier`: checks the token and builds the request context.
+- `Auth0Client`: supplies Auth0's signing keys and sends password resets.
+- `FridgemateFacade`: loads the member for each request.
+- `AccountService`: finds the member and household, and requests password resets.
+
+**Important methods:**
+- `TokenVerifier.current_context()`, `TokenVerifier.verify()`
+- `Auth0Client.get_signing_keys()`
+- `FridgemateFacade.load_context()`
+- `AccountService.load_context()`, `AccountService.request_password_reset()`
+
+**Execution:** Auth0's login page handles registering and logging in, so Fridgemate never sees passwords. After that, every request carries the token, and `TokenVerifier.current_context()` checks it with `verify()` using `Auth0Client.get_signing_keys()`. It then calls `FridgemateFacade.load_context()`, which uses `AccountService.load_context()` to find the member and their household. Changing the password calls `AccountService.request_password_reset()`, which has Auth0 email a reset link.
