@@ -29,6 +29,7 @@ package "server.domain.services" {
   }
 
   class ExpiryAlertNotifier {
+    -inventory : InventoryService
     +update(item: FoodItem, change: str)
     +get_alerts(ctx: RequestContext) : list[FoodItem]
   }
@@ -67,7 +68,9 @@ package "server.domain.services" {
 
   class AccountService {
     -members : MemberRepository
+    -households : HouseholdRepository
     -auth : Auth0Client
+    +load_context(auth0_id: str) : RequestContext
     +set_profile(ctx: RequestContext, name: str) : Member
     +update_preferences(ctx: RequestContext, restrictions: list[str], dislikes: list[str]) : Member
     +request_password_reset(ctx: RequestContext)
@@ -141,6 +144,7 @@ InventoryObserver <|.. ExpiryAlertNotifier
 InventoryObserver <|.. ShoppingListService
 InventoryObserver <|.. HouseholdNotifier
 HouseholdNotifier "1" --> "1" NotificationService
+ExpiryAlertNotifier "1" --> "1" InventoryService
 
 ' Strategy
 PlacementService "1" --> "2" PlacementStrategy : primary, fallback

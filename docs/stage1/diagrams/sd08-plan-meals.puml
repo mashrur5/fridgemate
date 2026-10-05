@@ -1,0 +1,83 @@
+@startuml sd08-plan-meals
+title SD08: Plan Waste-Rescue Meals (F13)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+hide footbox
+
+actor "Member" as M
+boundary ":MealPlanPage" as P
+participant ":ApiClient" as A
+boundary ":MealPlanRouter" as R
+control ":FridgemateFacade" as F
+participant ":MealPlanAgent" as MPA <<AI agent>>
+participant ":GetInventoryTool" as GIT
+participant ":GeminiClient" as G
+participant ":SearchRecipesTool" as SRT
+participant ":StockValidator" as SV
+participant ":MealPlanRepository" as MPR
+participant ":InventoryService" as IS
+entity ":MealPlan" as MP
+
+M -> P ++ : pick days, meals per day, max time, Plan my meals
+P -> A ++ : request("POST", "/plans", days, meals_per_day, max_time)
+A -> R ++ : POST /plans (token)
+R -> F ++ : plan_meals(ctx, days, meals_per_day, max_time)
+F -> MPA ++ : run(ctx, days, meals_per_day, max_time)
+MPA -> GIT ++ : execute(ctx, {})
+GIT --> MPA -- : usable items
+MPA -> MPA : sort by expiry_date, assign each\nexpiring item to a day before it expires
+loop for each planned meal
+  MPA -> G ++ : generate_with_tools(prompt, declarations)
+  G --> MPA -- : call search_recipes(day's items, max_time)
+  MPA -> SRT ++ : execute(ctx, {ingredients, max_time})
+  SRT --> MPA -- : recipes
+  opt not enough different recipes
+    MPA -> G ++ : generate(prompt)
+    G --> MPA -- : AI-generated recipe (labeled)
+  end
+end
+loop until the plan passes, within 6 tool steps
+  MPA -> SV ++ : validate(recipe, remaining_items)
+  SV --> MPA -- : missing ingredients
+  alt total amounts exceed stock or a dish repeats
+    MPA -> MPA : re-plan only the affected days
+  end
+end
+create MP
+MPA -> MP : <<create>>
+MPA --> F -- : plan
+F -> MPR ++ : save(plan)
+MPR --> F --
+F --> R -- : plan
+R --> A -- : 201 Created
+A --> P -- : plan
+P --> M -- : calendar of meals, missing ingredients
+
+M -> P ++ : open the Meal Plan page later
+P -> A ++ : request("GET", "/plans/current")
+A -> R ++ : GET /plans/current (token)
+R -> F ++ : replan_meals(ctx)
+F -> MPR ++ : find_for_member(member_id)
+MPR --> F -- : plan
+F -> IS ++ : get_items(ctx)
+IS --> F -- : items
+F -> MP ++ : check_against(items)
+alt plan still fits the stock
+  MP --> F : true
+  F --> R : plan
+else an item was eaten, claimed or expired
+  MP --> F : false (needs_update)
+  F -> MPA ++ : replan(ctx, plan)
+  MPA --> F -- : plan with only affected meals changed
+  F -> MPR ++ : save(plan)
+  MPR --> F --
+  F --> R : updated plan
+end
+deactivate MP
+deactivate F
+R --> A -- : 200 OK
+A --> P -- : plan
+P --> M -- : calendar (with banner if it was re-planned)
+@enduml

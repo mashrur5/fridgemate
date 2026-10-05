@@ -83,7 +83,7 @@ ClaimItemCommand "0..*" --> "1" InventoryService : receiver
 FridgemateFacade "1" --> "1" CommandHistory : invokes
 FridgemateFacade ..> InventoryCommand : creates Add, Update,\nRemove, Offer, Claim
 CookingService ..> CookRecipeCommand : creates
-FridgeCommandAgent ..> ProposedChanges : creates
+FridgeCommandAgent ..> ProposedChanges : creates, with its\nAdd, Update and Remove commands
 
 note right of CommandHistory
   <b>Command pattern</b>

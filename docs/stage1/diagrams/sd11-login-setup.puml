@@ -1,0 +1,84 @@
+@startuml sd11-login-setup
+title SD11: Log In and Set Up Profile and Household (UC16, F06)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+hide footbox
+
+actor "Member" as M
+boundary ":App" as APP
+participant "Auth0 React SDK" as SDK <<library>>
+participant "Auth0" as AU <<external>>
+boundary ":ProfileSetupPage" as PSP
+participant ":ApiClient" as A
+boundary ":AccountRouter" as R
+participant ":TokenVerifier" as T
+participant ":Auth0Client" as AC
+control ":FridgemateFacade" as F
+participant ":AccountService" as AS
+participant ":HouseholdService" as HS
+
+M -> APP ++ : open Fridgemate
+APP -> SDK ++ : loginWithRedirect()
+SDK -> AU ++ : redirect to the login page
+M -> AU : enter email and password (or register)
+alt wrong email or password
+  AU --> M : error, try again
+else login succeeds
+  AU --> SDK -- : redirect back with an access token
+end
+SDK --> APP -- : logged in
+
+APP -> A ++ : request("GET", "/account/me")
+A -> SDK ++ : getAccessTokenSilently()
+SDK --> A -- : token
+A -> R ++ : GET /account/me (token)
+R -> T ++ : current_context(token)
+T -> T ++ : verify(token)
+T -> AC ++ : get_signing_keys()
+AC --> T -- : keys
+deactivate T
+T -> F ++ : load_context(auth0_id)
+F -> AS ++ : load_context(auth0_id)
+AS --> F -- : ctx (member is None on first login)
+F --> T -- : ctx
+T --> R -- : ctx
+R --> A -- : first_login = true
+A --> APP -- : first login
+APP -> PSP ++ : show profile setup
+
+M -> PSP : enter name, "Create a household"
+PSP -> A ++ : request("POST", "/account/profile", name)
+A -> R ++ : POST /account/profile (token)
+R -> F ++ : set_profile(ctx, name)
+F -> AS ++ : set_profile(ctx, name)
+AS --> F -- : member
+F --> R -- : member
+R --> A -- : 201 Created
+A --> PSP --
+alt create a household
+  PSP -> A ++ : request("POST", "/households", name)
+  A -> F ++ : create_household(ctx, name) (through HouseholdRouter)
+  F -> HS ++ : create_household(ctx, name)
+  HS -> HS : generate_invite_code()
+  HS --> F -- : household with invite code
+  F --> A -- : household
+  A --> PSP --
+else join with a code
+  PSP -> A ++ : request("POST", "/households/join", invite_code)
+  A -> F ++ : join_household(ctx, invite_code) (through HouseholdRouter)
+  F -> HS ++ : join_household(ctx, invite_code)
+  alt code found
+    HS --> F : household
+  else wrong code
+    HS --> F : not found
+  end
+  deactivate HS
+  F --> A -- : household or error
+  A --> PSP --
+end
+PSP --> M -- : Inventory page, or "No household found"
+deactivate APP
+note over T, AC : on later visits, current_context() returns the\nfull ctx and the member goes straight to the app
+@enduml

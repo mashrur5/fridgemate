@@ -1,0 +1,94 @@
+@startuml sd05-cook-recipe
+title SD05: Cook Recipe and Undo (F09)
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam ParticipantPadding 6
+skinparam BoxPadding 4
+hide footbox
+
+actor "Member" as M
+boundary ":RecipePage" as P
+participant ":ApiClient" as A
+boundary ":RecipeRouter" as R
+control ":FridgemateFacade" as F
+participant ":CookingService" as CS
+participant ":UnitConverter" as UC
+participant ":ExpiryService" as ES
+participant ":CommandHistory" as CH
+participant ":InventoryService" as IS
+participant ":ShoppingListService" as SLS
+
+M -> P ++ : confirm "Cook this" (amounts, leftovers)
+P -> A ++ : request("POST", "/recipes/cook", recipe, servings, amounts, leftovers)
+A -> R ++ : POST /recipes/cook (token)
+R -> F ++ : cook_recipe(ctx, recipe, servings, amounts, leftovers)
+F -> CS ++ : cook(ctx, recipe, servings, amounts, leftovers)
+CS -> IS ++ : get_items(ctx)
+IS --> CS -- : items
+loop for each ingredient
+  CS -> UC ++ : convert(amount, item.unit)
+  UC --> CS -- : amount in the item's unit
+end
+break an item no longer has enough
+  CS --> F : InsufficientStock(short items)
+  F --> R : 409 Conflict
+  R --> A : error
+  A --> P : short items
+  P --> M : shows short items to adjust or cancel
+end
+opt leftovers > 0
+  CS -> ES ++ : estimate_expiry("leftovers", FRIDGE, today)
+  ES --> CS -- : expiry_date
+end
+create ":CookRecipeCommand" as C
+CS -> C : <<create>>
+CS --> F -- : command
+F -> CH ++ : run(ctx, command)
+CH -> C ++ : execute()
+loop for each deduction
+  C -> IS ++ : deduct(ctx, item_id, amount)
+  IS -> IS : remove the item if it reaches zero
+  IS -> SLS ++ : update(item, "deducted")
+  opt item.is_low()
+    SLS -> SLS : add the item to the shopping list
+  end
+  SLS --> IS --
+  IS --> C --
+end
+opt leftover
+  C -> IS ++ : add(ctx, leftover)
+  IS --> C --
+end
+C --> CH --
+CH --> F --
+F --> R -- : summary
+R --> A -- : 200 OK
+A --> P -- : summary
+P --> M -- : summary with Undo button
+
+M -> P ++ : press Undo
+P -> A ++ : request("POST", "/undo")
+A -> R ++ : POST /undo (token)
+R -> F ++ : undo(ctx)
+F -> CH ++ : undo_last(ctx)
+alt history is not empty
+  CH -> C ++ : undo()
+  loop for each deduction
+    C -> IS ++ : update(ctx, item) with the old quantity
+    IS --> C --
+  end
+  opt leftover
+    C -> IS ++ : remove(ctx, leftover_id)
+    IS --> C --
+  end
+  C --> CH --
+  CH --> F : true
+else history is empty, e.g. after a restart
+  CH --> F : false
+end
+deactivate CH
+F --> R -- : result
+R --> A -- : 200 OK
+A --> P -- : result
+P --> M -- : restored list, or "Nothing to undo"
+@enduml
