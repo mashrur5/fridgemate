@@ -618,7 +618,53 @@ The instructions say login and change password don't count as features, so these
 - **Email already registered:** Auth0 asks the user to log in instead.
 - **Session expired:** the user is sent back to the login page, and nothing saved is lost.
 
-## 3. Class Diagram and Design Patterns (Task 2.1)
+## 2. Designing the system using UML
+
+### 2.1 Class Diagram
+
+#### 2.1.1 Class Diagrams
+
+Fridgemate has over 100 classes, so the class diagram is split into seven parts. Diagram 1 shows the overall structure, and Diagrams 2 to 7 each cover one layer. A class from another diagram appears as a small box labeled "see Diagram N." All names match the code exactly, and the source files are in `docs/stage1/diagrams/`.
+
+##### Diagram 1: Overview
+
+The web app and CLI send requests over HTTPS to the server, which has four layers: API, application, domain and agent, and infrastructure. Calls only go downward, and the domain layer depends on interfaces that the infrastructure layer implements.
+
+##### Diagram 2: Clients, API and Facade
+
+Both clients send requests with the user's Auth0 token. `TokenVerifier` checks the token and builds a `RequestContext`, and every router then calls `FridgemateFacade`.
+
+##### Diagram 3: Domain Model and State
+
+A `Household` has members and owns its `FoodItem`s. An item with no owner is Shared. Each item holds a `FreshnessState` that decides what the item is allowed to do.
+
+##### Diagram 4: Services, Observer and Strategy
+
+`InventoryService` notifies its observers whenever the inventory changes. `PlacementService` and `ExpiryService` use the LLM first and fall back to a rule table.
+
+##### Diagram 5: Commands
+
+Every inventory change is a command with `execute()` and `undo()`. `CommandHistory` runs them and keeps an undo stack for each member.
+
+##### Diagram 6: Agents and Tools
+
+The three agents share `BaseAgent`, which runs the tool loop. Agents reach data only through tools, and tools only call services, so the ownership and expiry rules can't be skipped.
+
+##### Diagram 7: Infrastructure
+
+Adapters connect Fridgemate to Gemini, Ollama, and TheMealDB. `LLMClientFactory` picks the LLM, and each repository stores its data in Neon.
+
+#### 2.1.2 Design Patterns
+
+| Pattern | Problem it solves | Classes and roles | Why it fits | Without it |
+| --- | --- | --- | --- | --- |
+| **Facade** (Diagram 2) | About 30 operations are spread across 10 services, 4 agents, and the command history. | Facade: `FridgemateFacade`. Clients: the 10 routers. Subsystem: the services and agents. | Each router makes one call instead of combining several classes, like `CarEngineFacade`. | Every router would depend on most of the server, and one change would mean editing many routes. |
+| **Strategy** (Diagrams 4, 6) | The same job must be done in different ways: ingredients from the fridge or a typed list, and AI estimates with a rule-based fallback. | Strategies: `IngredientSource`, `PlacementStrategy`, `ExpiryEstimator` and their implementations. Contexts: `RecipeAgent`, `PlacementService`, `ExpiryService`. | F07 and F10 run the same agent with a different source, and a fallback is just a strategy swap. | The agent and services would fill up with if/else branches, and tests couldn't swap in fakes. |
+| **Command** (Diagram 5) | Inventory changes come from forms, cooking, chat, and sharing, and must be undoable. F12 must show changes before applying them. | Command: `InventoryCommand` and 6 concrete commands. Invoker: `CommandHistory`. Receiver: `InventoryService`. Client: `FridgemateFacade`. | Each change becomes an object that can be shown, run, and undone the same way, like Waiter, Order, and Chef. | Every feature would need its own undo logic, and F12 would need a separate preview format. |
+| **Observer** (Diagram 4) | Alerts, the shopping list, and notifications must react to inventory changes. | Subject: `InventoryService`. Observer: `InventoryObserver`. Concrete observers: `ExpiryAlertNotifier`, `ShoppingListService`, `HouseholdNotifier`. | One change has several independent reactions, like ClockTimer and its clocks. | `InventoryService` would call every feature directly, breaking the Open-Closed Principle. |
+| **State** (Diagram 3) | An item's allowed actions depend on freshness: expired items can't be used or offered. | Context: `FoodItem`. State: `FreshnessState`. Concrete states: `FreshState`, `ExpiringSoonState`, `ExpiredState`. | The behavior changes with the state, and a new state only needs one new class. | Date checks would be repeated across features, and one mistake could let the agent suggest expired food. |
+| **Adapter** (Diagram 7) | Gemini, Ollama, and TheMealDB each have their own API. | Targets: `LLMClient`, `RecipeSource`. Adapters: `GeminiClient`, `OllamaClient`, `MealDBRecipeSource`. Adaptees: the outside APIs. | The agents use one interface, and the adapter hides service limits, like the round and square pegs. | Service-specific code would spread through the agents, and switching LLMs would mean rewriting them. |
+| **Factory Method** (Diagram 7) | The LLM is chosen by configuration, so callers shouldn't name a client class. | Creator: `LLMClientFactory` with `create_client()`. Product: `LLMClient`. Concrete products: `GeminiClient`, `OllamaClient`. | The choice sits in one place, like NameFactory, and completes the Dependency Inversion setup. | The same provider check would be repeated everywhere an LLM is created. |
 
 ## 4. Use Cases (Task 2.2)
 
