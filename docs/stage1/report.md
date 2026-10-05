@@ -23,9 +23,9 @@ Repository: https://github.com/mashrur5/fridgemate
 
 ## 1. Defining my agent project
 
-## 1.1 Project Description
+### 1.1 Project Description
 
-### 1.1.1 Problem and Motivation
+#### 1.1.1 Problem and Motivation
 
 I live with roommates, and we all share one fridge. It sounds simple, but it causes the same problems every week. Nobody knows what they can cook with what is already there, so we end up ordering food or buying more groceries. Items get pushed to the back, and after a few days it is hard to remember whose milk or vegetables are whose. By the time someone notices, the food has usually gone bad.
 
@@ -37,13 +37,14 @@ These problems come down to three things:
 
 Fridgemate is an AI agent that helps a shared household manage its food. It tracks what is in the fridge, freezer, and pantry, along with who owns each item. It also estimates when items will expire, reads grocery receipts, and suggests recipes and meal plans that use food before it goes bad. If one of my items is about to expire and I know I won't use it, I can offer it to my roommates instead of throwing it out (#NoWaste)!
 
-### 1.1.2 Target Users
+#### 1.1.2 Target Users
 
 Fridgemate is built for students and young adults who live in shared housing, such as roommates/housemates in an apartment or house or even residence. Most of these users are busy and on a tight budget (broke college students), so throwing away food actually hurts. They also share a fridge with people they may not talk to every day, which is why ownership and sharing are a big part of the design.
 
-### 1.1.3 What the Agent Can Do
+#### 1.1.3 What the Agent Can Do
 
 Fridgemate has 15 features in three groups.
+
 | Group | Features |
 | --- | --- |
 | Tracking food | F01 Inventory management, F02 AI storage placement, F03 Receipt import, F04 Expiry estimation and tracking, F05 Expiring-soon alerts, F06 Household members, ownership, and preferences |
@@ -59,7 +60,7 @@ A few examples show what this looks like in practice:
 
 Besides these 15 features, Fridgemate also has register, login, and change password, which are handled through Auth0. I don't count these as features, since the instructions say login and change password don't count, but every other feature depends on them to know who owns what. Creating a household and inviting roommates is part of F06.
 
-### 1.1.4 Why an AI Agent Fits This Problem
+#### 1.1.4 Why an AI Agent Fits This Problem
 
 Picking a meal sounds easy, but it involves a lot of things at once: what is in stock, who owns it, what is about to expire, how much time the user has, what kind of food they want, and how many people they are cooking for. A single call to an LLM cannot handle this reliably, because the model has no idea what is in my fridge and it may make up ingredients that are not there. That is why Fridgemate uses an agent that works in steps and checks its work with tools.
 
