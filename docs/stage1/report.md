@@ -1,9 +1,24 @@
 # Fridgemate: Stage 1 Design Report
 
 EECS 3311 Software Design
+
 Author: Mohammad Mashrur Mahtab Mahi
+
 Student no. 221600234
+
 Repository: https://github.com/mashrur5/fridgemate
+
+## Contents
+
+1. [Defining my agent project](#1-defining-my-agent-project)
+   - [1.1 Project Description](#11-project-description)
+   - [1.2 Feature Specification](#12-feature-specification)
+2. [Designing the system using UML](#2-designing-the-system-using-uml)
+   - [2.1 Class Diagram](#21-class-diagram)
+   - [2.2 Use-Case Diagram and Descriptions](#22-use-case-diagram-and-descriptions)
+   - [2.3 Sequence Diagrams](#23-sequence-diagrams)
+3. [Feature-to-Design Traceability](#3-feature-to-design-traceability)
+4. [How Each Feature Is Realized](#4-how-each-feature-is-realized)
 
 
 ## 1. Defining my agent project
@@ -971,18 +986,18 @@ The diagrams follow the notation from the course slides:
 | alt, opt, loop, break boxes | A choice between paths, an optional step, a repeated step, or an error path that ends the interaction. The condition is shown in square brackets. |
 | «create» | A new object being created, such as a command |
 
-Two conventions keep the diagrams readable. Every request carries the member's Auth0 token and is checked by `TokenVerifier.current_context()` before reaching the facade; this is drawn in SD01 and SD11 and noted in the others. The CLI follows the same path as the web app, through `FridgemateClient` instead of `ApiClient`.
+Two conventions keep the diagrams readable. Every request carries the member's Auth0 token and is checked by `TokenVerifier.current_context()` before reaching the facade; this is drawn in SD01 and SD11 and noted in the others. The CLI follows the same path as the web app, through `FridgemateClient` instead of `ApiClient`.  The last column lists only the patterns you can see in each diagram; Section 3 lists every pattern a feature relies on, including ones working behind the scenes.
 
-| Diagram | Features | Use cases | Patterns shown |
+| Diagram | Features | Use cases | Patterns visible in the diagram |
 | --- | --- | --- | --- |
-| SD01 Add Item | F01, F02, F04 | UC01, UC02, UC04 | Facade, Strategy, Command, Observer |
-| SD02 Import Receipt | F03 | UC03 | Adapter |
-| SD03 Refresh Freshness and Show Alerts | F05 | UC05 | State, Observer |
+| SD01 Add Item | F01, F02, F04 | UC01, UC02, UC04 | Facade, Strategy, Adapter, Command, Observer |
+| SD02 Import Receipt | F03 | UC03 | Adapter, Strategy |
+| SD03 Refresh Freshness and Show Alerts | F04, F05 | UC04, UC05 | State, Observer |
 | SD04 Suggest Recipes | F07, F08, F10 | UC07, UC08, UC10 | Strategy, Adapter |
-| SD05 Cook Recipe and Undo | F09 | UC09 | Command, Observer |
+| SD05 Cook Recipe and Undo | F09, F11, | UC09, UC11 | Command, Observer |
 | SD06 Build Shopping List | F11 | UC11 | Observer |
-| SD07 Run Fridge Command | F12 | UC12 | Command |
-| SD08 Plan Waste-Rescue Meals | F13 | UC13 | State |
+| SD07 Run Fridge Command | F12 | UC12 | Command, Adapter |
+| SD08 Plan Waste-Rescue Meals | F13 | UC13 | Adapter |
 | SD09 Split Shared Costs | F14 | UC14 | Facade |
 | SD10 Offer and Claim an Expiring Item | F15 | UC15 | Command, Observer, State |
 | SD11 Log In and Set Up Profile and Household | F06, accounts | UC06, UC16 | Facade |
