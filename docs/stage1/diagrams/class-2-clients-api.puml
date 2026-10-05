@@ -1,0 +1,208 @@
+@startuml class-2-clients-api
+title Fridgemate Class Diagram 2: Clients, API and Facade (web, cli, server.api, server.application)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+hide empty members
+hide circle
+set separator none
+left to right direction
+
+package "web (React, TypeScript)" {
+  class App
+  class ProfileSetupPage
+  class HouseholdPage
+  class InventoryPage
+  class NotificationsPage
+  class ReceiptImportPage
+  class RecipePage
+  class QuickFinderPage
+  class MealPlanPage
+  class ShoppingListPage
+  class CostSplitPage
+  class CommandChatPage
+  class ApiClient {
+    -baseUrl : string
+    +request(method: string, path: string, body?: object) : Promise<object>
+    +getItems(filters: object) : Promise<FoodItem[]>
+    +importReceipt(photo: File) : Promise<FoodItem[]>
+    +suggestRecipes(request: RecipeRequest) : Promise<RecipeSuggestion[]>
+    +offerItem(itemId: string, note: string) : Promise<void>
+  }
+  class "Auth0 React SDK" as Auth0Sdk <<library>>
+}
+
+package "cli (Python)" {
+  class FridgemateCLI {
+    +items(action: str)
+    +receipt_import(photo: Path)
+    +recipes_suggest(cuisine: str, time: str, weight: str, servings: int)
+    +cook(recipe_id: str, servings: int, leftovers: int)
+    +do(message: str)
+    +plan(days: int)
+    +offer(item: str)
+    +login()
+    +logout()
+  }
+  class FridgemateClient {
+    -base_url : str
+    +request(method: str, path: str, body: Optional[dict]) : dict
+  }
+  class DeviceLogin {
+    -auth0_domain : str
+    -client_id : str
+    +login() : str
+  }
+  class TokenStore {
+    +save(token: str)
+    +load() : Optional[str]
+    +clear()
+  }
+}
+
+package "server.api" {
+  class TokenVerifier {
+    -auth : Auth0Client
+    +verify(token: str) : dict
+    +current_context(token: str) : RequestContext
+  }
+  class AccountRouter
+  class HouseholdRouter
+  class InventoryRouter
+  class ReceiptRouter
+  class RecipeRouter
+  class MealPlanRouter
+  class ShoppingRouter
+  class CostRouter
+  class CommandRouter
+  class NotificationRouter
+}
+
+package "server.application" {
+  class RequestContext {
+    +member : Member
+    +household : Household
+  }
+  class FridgemateFacade {
+    +set_profile(ctx: RequestContext, name: str) : Member
+    +update_preferences(ctx: RequestContext, restrictions: list[str], dislikes: list[str]) : Member
+    +request_password_reset(ctx: RequestContext)
+    +create_household(ctx: RequestContext, name: str) : Household
+    +join_household(ctx: RequestContext, invite_code: str) : Household
+    +get_items(ctx: RequestContext, filters: dict) : list[FoodItem]
+    +add_item(ctx: RequestContext, item: FoodItem) : FoodItem
+    +update_item(ctx: RequestContext, item: FoodItem) : FoodItem
+    +remove_item(ctx: RequestContext, item_id: UUID)
+    +suggest_location(item_name: str) : tuple[Location, str]
+    +import_receipt(ctx: RequestContext, image: bytes) : list[FoodItem]
+    +save_receipt_items(ctx: RequestContext, items: list[FoodItem], payer_id: UUID) : int
+    +get_alerts(ctx: RequestContext) : list[FoodItem]
+    +suggest_recipes(ctx: RequestContext, request: RecipeRequest) : list[RecipeSuggestion]
+    +find_recipes(ctx: RequestContext, names: list[str], request: RecipeRequest) : list[RecipeSuggestion]
+    +cook_recipe(ctx: RequestContext, recipe: Recipe, servings: int, amounts: dict[UUID, Quantity], leftovers: int)
+    +undo(ctx: RequestContext) : bool
+    +run_command(ctx: RequestContext, message: str) : ProposedChanges
+    +confirm_changes(ctx: RequestContext, changes: ProposedChanges)
+    +plan_meals(ctx: RequestContext, days: int, meals_per_day: int, max_time: CookingTime) : MealPlan
+    +replan_meals(ctx: RequestContext) : MealPlan
+    +build_shopping_list(ctx: RequestContext) : ShoppingList
+    +add_to_shopping_list(ctx: RequestContext, ingredients: list[RecipeIngredient])
+    +split_costs(ctx: RequestContext, start: date, end: date) : list[Settlement]
+    +mark_paid(ctx: RequestContext, settlement_id: UUID)
+    +offer_item(ctx: RequestContext, item_id: UUID, note: str)
+    +withdraw_offer(ctx: RequestContext, item_id: UUID)
+    +claim_item(ctx: RequestContext, item_id: UUID) : bool
+    +get_notifications(ctx: RequestContext) : list[Notification]
+  }
+}
+
+package "Subsystem behind the facade (Diagrams 4 to 6)" {
+  class InventoryService
+  class HouseholdService
+  class AccountService
+  class PlacementService
+  class ExpiryService
+  class CookingService
+  class ShoppingListService
+  class CostSplitService
+  class NotificationService
+  class ExpiryAlertNotifier
+  class CommandHistory
+  class RecipeAgent
+  class MealPlanAgent
+  class FridgeCommandAgent
+  class ReceiptParser
+}
+
+class Auth0Client <<see Diagram 7>>
+
+App "1" *-- "1" ProfileSetupPage
+App "1" *-- "1" HouseholdPage
+App "1" *-- "1" InventoryPage
+App "1" *-- "1" NotificationsPage
+App "1" *-- "1" ReceiptImportPage
+App "1" *-- "1" RecipePage
+App "1" *-- "1" QuickFinderPage
+App "1" *-- "1" MealPlanPage
+App "1" *-- "1" ShoppingListPage
+App "1" *-- "1" CostSplitPage
+App "1" *-- "1" CommandChatPage
+App "1" --> "1" Auth0Sdk
+App "1" --> "1" ApiClient
+ApiClient "1" --> "1" Auth0Sdk : gets token
+ApiClient ..> "server.api" : HTTPS + token
+
+FridgemateCLI "1" --> "1" FridgemateClient
+FridgemateCLI "1" --> "1" DeviceLogin
+DeviceLogin "1" --> "1" TokenStore
+FridgemateClient "1" --> "1" TokenStore
+FridgemateClient ..> "server.api" : HTTPS + token
+
+AccountRouter "1" --> "1" FridgemateFacade
+HouseholdRouter "1" --> "1" FridgemateFacade
+InventoryRouter "1" --> "1" FridgemateFacade
+ReceiptRouter "1" --> "1" FridgemateFacade
+RecipeRouter "1" --> "1" FridgemateFacade
+MealPlanRouter "1" --> "1" FridgemateFacade
+ShoppingRouter "1" --> "1" FridgemateFacade
+CostRouter "1" --> "1" FridgemateFacade
+CommandRouter "1" --> "1" FridgemateFacade
+NotificationRouter "1" --> "1" FridgemateFacade
+InventoryRouter ..> TokenVerifier : uses
+TokenVerifier ..> RequestContext : creates
+TokenVerifier "1" --> "1" Auth0Client
+
+FridgemateFacade "1" --> "1" InventoryService
+FridgemateFacade "1" --> "1" HouseholdService
+FridgemateFacade "1" --> "1" AccountService
+FridgemateFacade "1" --> "1" PlacementService
+FridgemateFacade "1" --> "1" ExpiryService
+FridgemateFacade "1" --> "1" CookingService
+FridgemateFacade "1" --> "1" ShoppingListService
+FridgemateFacade "1" --> "1" CostSplitService
+FridgemateFacade "1" --> "1" NotificationService
+FridgemateFacade "1" --> "1" ExpiryAlertNotifier
+FridgemateFacade "1" --> "1" CommandHistory
+FridgemateFacade "1" --> "1" RecipeAgent
+FridgemateFacade "1" --> "1" MealPlanAgent
+FridgemateFacade "1" --> "1" FridgeCommandAgent
+FridgemateFacade "1" --> "1" ReceiptParser
+FridgemateFacade ..> RequestContext : receives
+
+note top of FridgemateFacade
+  <b>Facade pattern</b>
+  Facade: FridgemateFacade
+  Clients: the 10 FastAPI routers
+  Subsystem: services, agents and CommandHistory
+  Every method takes a RequestContext, so every
+  call is limited to the member's own household.
+end note
+
+note bottom of ApiClient
+  Every page calls ApiClient, and both clients
+  send each request with the member's Auth0
+  token. Every router checks that token with
+  TokenVerifier (one dependency is drawn to
+  keep the diagram readable).
+end note
+@enduml

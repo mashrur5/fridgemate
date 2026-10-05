@@ -1,0 +1,194 @@
+@startuml class-6-agent-tools
+title Fridgemate Class Diagram 6: AI Agents and Tools (server.agent, server.agent.tools)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+hide empty members
+hide circle
+set separator none
+left to right direction
+
+package "server.agent" {
+
+  abstract class BaseAgent {
+    #llm : LLMClient
+    #tools : ToolRegistry
+    #prompts : PromptBuilder
+    #parser : ResponseParser
+    #trace : AgentTrace
+    #max_steps : int = 6
+    #run_tool_loop(ctx: RequestContext, prompt: str) : dict
+  }
+
+  class RecipeAgent {
+    -source : IngredientSource
+    -validator : StockValidator
+    +set_source(source: IngredientSource)
+    +run(ctx: RequestContext, request: RecipeRequest) : list[RecipeSuggestion]
+  }
+
+  class MealPlanAgent {
+    -validator : StockValidator
+    -memory : ConversationMemory
+    +run(ctx: RequestContext, days: int, meals_per_day: int, max_time: CookingTime) : MealPlan
+    +replan(ctx: RequestContext, plan: MealPlan) : MealPlan
+  }
+
+  class FridgeCommandAgent {
+    -memory : ConversationMemory
+    +run(ctx: RequestContext, message: str) : ProposedChanges
+  }
+
+  class ReceiptParser {
+    -llm : LLMClient
+    -prompts : PromptBuilder
+    -parser : ResponseParser
+    +parse(image: bytes) : list[FoodItem]
+  }
+
+  interface IngredientSource <<interface>> {
+    +get_ingredients(ctx: RequestContext) : list[FoodItem]
+  }
+
+  class FridgeIngredientSource {
+    -inventory : InventoryService
+    +get_ingredients(ctx: RequestContext) : list[FoodItem]
+  }
+
+  class ManualIngredientSource {
+    -names : list[str]
+    +get_ingredients(ctx: RequestContext) : list[FoodItem]
+  }
+
+  class PromptBuilder {
+    +build(task: str, data: dict) : str
+  }
+
+  class ResponseParser {
+    +parse(text: str, schema: type) : dict
+  }
+
+  class ConversationMemory {
+    -turns : list[tuple[str, str]]
+    -max_turns : int
+    +add(role: str, text: str)
+    +recent() : list[tuple[str, str]]
+  }
+
+  class AgentTrace {
+    -steps : list[str]
+    +record(step: str)
+    +summary() : str
+  }
+}
+
+package "server.agent.tools" {
+
+  interface Tool <<interface>> {
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+
+  class ToolRegistry {
+    -tools : dict[str, Tool]
+    +register(tool: Tool)
+    +get(name: str) : Tool
+    +declarations() : list[dict]
+  }
+
+  class GetInventoryTool {
+    -source : IngredientSource
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+  class GetExpiringItemsTool {
+    -alerts : ExpiryAlertNotifier
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+  class SearchRecipesTool {
+    -recipes : RecipeSource
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+  class ValidateRecipeTool {
+    -validator : StockValidator
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+  class ConvertUnitsTool {
+    -converter : UnitConverter
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+  class ProposeInventoryChangeTool {
+    -inventory : InventoryService
+    +schema() : dict
+    +execute(ctx: RequestContext, args: dict) : dict
+  }
+}
+
+interface LLMClient <<interface>> <<see Diagram 7>>
+interface RecipeSource <<interface>> <<see Diagram 7>>
+class InventoryService <<see Diagram 4>>
+class StockValidator <<see Diagram 4>>
+
+BaseAgent <|-- RecipeAgent
+BaseAgent <|-- MealPlanAgent
+BaseAgent <|-- FridgeCommandAgent
+
+BaseAgent "0..*" --> "1" LLMClient
+BaseAgent "0..*" --> "1" ToolRegistry
+BaseAgent "1" *-- "1" PromptBuilder
+BaseAgent "1" *-- "1" ResponseParser
+BaseAgent "1" *-- "1" AgentTrace
+FridgeCommandAgent "1" *-- "1" ConversationMemory
+MealPlanAgent "1" *-- "1" ConversationMemory
+
+RecipeAgent "1" --> "1" IngredientSource : source
+IngredientSource <|.. FridgeIngredientSource
+IngredientSource <|.. ManualIngredientSource
+FridgeIngredientSource "1" --> "1" InventoryService
+RecipeAgent "1" --> "1" StockValidator
+MealPlanAgent "1" --> "1" StockValidator
+
+ReceiptParser "1" --> "1" LLMClient
+ReceiptParser "1" *-- "1" PromptBuilder
+ReceiptParser "1" *-- "1" ResponseParser
+
+ToolRegistry "1" o-- "1..*" Tool : tools
+Tool <|.. GetInventoryTool
+Tool <|.. GetExpiringItemsTool
+Tool <|.. SearchRecipesTool
+Tool <|.. ValidateRecipeTool
+Tool <|.. ConvertUnitsTool
+Tool <|.. ProposeInventoryChangeTool
+GetInventoryTool "1" --> "1" IngredientSource
+SearchRecipesTool "1" --> "1" RecipeSource
+ValidateRecipeTool "1" --> "1" StockValidator
+ProposeInventoryChangeTool "1" --> "1" InventoryService
+
+note right of IngredientSource
+  <b>Strategy pattern</b>
+  Context: RecipeAgent
+  Strategy: IngredientSource
+  FridgeIngredientSource (F07): the member's
+  own and Shared items, with roommates' and
+  expired items removed before the LLM sees them.
+  ManualIngredientSource (F10): the typed list.
+end note
+
+note bottom of BaseAgent
+  Each agent runs a loop: the LLM picks a tool,
+  the agent runs it through ToolRegistry, and the
+  result goes back to the LLM. The loop stops after
+  max_steps (6). Every answer is checked by
+  ResponseParser, and every step is recorded in
+  AgentTrace for the "Why this recipe?" panel.
+end note
+
+note bottom of Tool
+  Tools only call domain services,
+  never repositories (guardrail G1).
+end note
+@enduml

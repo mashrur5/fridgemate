@@ -1,0 +1,177 @@
+@startuml class-4-services
+title Fridgemate Class Diagram 4: Domain Services, Observer and Strategy (server.domain.services)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+hide empty members
+hide circle
+set separator none
+
+package "server.domain.services" {
+
+  class InventoryService {
+    -observers : list[InventoryObserver]
+    -items : ItemRepository
+    +attach(observer: InventoryObserver)
+    +detach(observer: InventoryObserver)
+    +notify_observers(item: FoodItem, change: str)
+    +get_items(ctx: RequestContext) : list[FoodItem]
+    +add(ctx: RequestContext, item: FoodItem) : FoodItem
+    +update(ctx: RequestContext, item: FoodItem) : FoodItem
+    +remove(ctx: RequestContext, item_id: UUID) : FoodItem
+    +deduct(ctx: RequestContext, item_id: UUID, amount: Quantity)
+    +mark_offered(ctx: RequestContext, item_id: UUID, note: str)
+    +claim(ctx: RequestContext, item_id: UUID) : bool
+  }
+
+  interface InventoryObserver <<interface>> {
+    +update(item: FoodItem, change: str)
+  }
+
+  class ExpiryAlertNotifier {
+    +update(item: FoodItem, change: str)
+    +get_alerts(ctx: RequestContext) : list[FoodItem]
+  }
+
+  class ShoppingListService {
+    -lists : ShoppingListRepository
+    -llm : LLMClient
+    -converter : UnitConverter
+    +update(item: FoodItem, change: str)
+    +build_shopping_list(ctx: RequestContext) : ShoppingList
+    +add_missing(ctx: RequestContext, ingredients: list[RecipeIngredient])
+    +add_manual(ctx: RequestContext, item: ShoppingListItem)
+    +check(ctx: RequestContext, item_id: UUID)
+  }
+
+  class HouseholdNotifier {
+    -notifications : NotificationService
+    +update(item: FoodItem, change: str)
+  }
+
+  class NotificationService {
+    -notifications : NotificationRepository
+    +notify(member_ids: list[UUID], message: str, item_id: UUID)
+    +get_inbox(ctx: RequestContext) : list[Notification]
+    +mark_read(ctx: RequestContext, notification_id: UUID)
+  }
+
+  class HouseholdService {
+    -households : HouseholdRepository
+    -members : MemberRepository
+    +create_household(ctx: RequestContext, name: str) : Household
+    +join_household(ctx: RequestContext, invite_code: str) : Household
+    +generate_invite_code() : str
+    +get_members(ctx: RequestContext) : list[Member]
+  }
+
+  class AccountService {
+    -members : MemberRepository
+    -auth : Auth0Client
+    +set_profile(ctx: RequestContext, name: str) : Member
+    +update_preferences(ctx: RequestContext, restrictions: list[str], dislikes: list[str]) : Member
+    +request_password_reset(ctx: RequestContext)
+  }
+
+  class PlacementService {
+    -primary : PlacementStrategy
+    -fallback : PlacementStrategy
+    +suggest_location(item_name: str) : tuple[Location, str]
+  }
+
+  interface PlacementStrategy <<interface>> {
+    +choose_location(item_name: str) : tuple[Location, str]
+  }
+  class LLMPlacementStrategy {
+    -llm : LLMClient
+    +choose_location(item_name: str) : tuple[Location, str]
+  }
+  class RuleBasedPlacementStrategy {
+    -rules : dict[str, Location]
+    +choose_location(item_name: str) : tuple[Location, str]
+  }
+
+  class ExpiryService {
+    -primary : ExpiryEstimator
+    -fallback : ExpiryEstimator
+    +estimate_expiry(item_name: str, location: Location, added_on: date) : date
+  }
+
+  interface ExpiryEstimator <<interface>> {
+    +estimate_days(item_name: str, location: Location) : int
+  }
+  class LLMExpiryEstimator {
+    -llm : LLMClient
+    +estimate_days(item_name: str, location: Location) : int
+  }
+  class RuleBasedExpiryEstimator {
+    -rules : dict[str, int]
+    +estimate_days(item_name: str, location: Location) : int
+  }
+
+  class CookingService {
+    -inventory : InventoryService
+    -expiry : ExpiryService
+    -converter : UnitConverter
+    +cook(ctx: RequestContext, recipe: Recipe, servings: int, amounts: dict[UUID, Quantity], leftovers: int) : CookRecipeCommand
+  }
+
+  class CostSplitService {
+    -items : ItemRepository
+    -settlements : SettlementRepository
+    +split(ctx: RequestContext, start: date, end: date) : list[Settlement]
+    +mark_paid(ctx: RequestContext, settlement: Settlement)
+  }
+
+  class StockValidator {
+    -converter : UnitConverter
+    +validate(recipe: Recipe, items: list[FoodItem]) : list[RecipeIngredient]
+  }
+
+  class UnitConverter {
+    +convert(quantity: Quantity, to_unit: str) : Quantity
+    +can_convert(from_unit: str, to_unit: str) : bool
+  }
+}
+
+
+' Observer
+InventoryService "1" o-- "0..*" InventoryObserver : observers
+InventoryObserver <|.. ExpiryAlertNotifier
+InventoryObserver <|.. ShoppingListService
+InventoryObserver <|.. HouseholdNotifier
+HouseholdNotifier "1" --> "1" NotificationService
+
+' Strategy
+PlacementService "1" --> "2" PlacementStrategy : primary, fallback
+PlacementStrategy <|.. LLMPlacementStrategy
+PlacementStrategy <|.. RuleBasedPlacementStrategy
+ExpiryService "1" --> "2" ExpiryEstimator : primary, fallback
+ExpiryEstimator <|.. LLMExpiryEstimator
+ExpiryEstimator <|.. RuleBasedExpiryEstimator
+
+' Other collaborations
+CookingService "1" --> "1" InventoryService
+CookingService "1" --> "1" ExpiryService
+CookingService "1" --> "1" UnitConverter
+StockValidator "1" --> "1" UnitConverter
+ShoppingListService "1" --> "1" UnitConverter
+
+note top of InventoryObserver
+  <b>Observer pattern</b>
+  Subject: InventoryService
+  Observer: InventoryObserver
+  Concrete observers: ExpiryAlertNotifier,
+  ShoppingListService, HouseholdNotifier
+end note
+
+note bottom of PlacementStrategy
+  <b>Strategy pattern</b>
+  Contexts: PlacementService, ExpiryService
+  The LLM strategy is primary; the
+  rule-based one is the fallback.
+end note
+
+note "CookingService.cook() creates a\nCookRecipeCommand (see Diagram 5)." as N1
+N1 .. CookingService
+@enduml

@@ -1,0 +1,200 @@
+@startuml class-7-infrastructure
+title Fridgemate Class Diagram 7: Infrastructure, Adapter and Factory Method (server.infrastructure)
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam packageStyle rectangle
+hide empty members
+hide circle
+set separator none
+left to right direction
+
+package "server.infrastructure.llm" {
+  interface LLMClient <<interface>> {
+    +generate(prompt: str) : str
+    +generate_with_tools(prompt: str, tools: list[dict]) : dict
+    +read_image(image: bytes, prompt: str) : str
+  }
+  class GeminiClient {
+    -sdk : genai.Client
+    -model : str
+    -retry : RetryPolicy
+    +generate(prompt: str) : str
+    +generate_with_tools(prompt: str, tools: list[dict]) : dict
+    +read_image(image: bytes, prompt: str) : str
+  }
+  class OllamaClient {
+    -base_url : str
+    -model : str
+    -retry : RetryPolicy
+    +generate(prompt: str) : str
+    +generate_with_tools(prompt: str, tools: list[dict]) : dict
+    +read_image(image: bytes, prompt: str) : str
+  }
+  class LLMClientFactory {
+    +create_client(config: Config) : LLMClient
+  }
+  class RetryPolicy {
+    -max_attempts : int
+    -base_delay : float
+    +call(operation: Callable) : Any
+  }
+}
+
+package "server.infrastructure.recipes" {
+  interface RecipeSource <<interface>> {
+    +search_by_ingredients(ingredients: list[str], cuisine: Optional[str]) : list[Recipe]
+    +get_recipe(recipe_id: str) : Recipe
+    +list_cuisines() : list[str]
+  }
+  class MealDBRecipeSource {
+    -api_key : str
+    -base_url : str
+    +search_by_ingredients(ingredients: list[str], cuisine: Optional[str]) : list[Recipe]
+    +get_recipe(recipe_id: str) : Recipe
+    +list_cuisines() : list[str]
+  }
+}
+
+package "server.infrastructure.auth" {
+  class Auth0Client {
+    -domain : str
+    -client_id : str
+    +send_password_reset(email: str)
+    +get_signing_keys() : dict
+  }
+}
+
+package "server.infrastructure.persistence" {
+  class Database {
+    -pool : ConnectionPool
+    +connection() : Connection
+  }
+  class Config {
+    +database_url : str
+    +llm_provider : str
+    +gemini_api_key : str
+    +auth0_domain : str
+    +auth0_audience : str
+    +mealdb_api_key : str
+  }
+
+  interface ItemRepository <<interface>> {
+    +save(item: FoodItem)
+    +find_by_id(item_id: UUID) : Optional[FoodItem]
+    +find_by_household(household_id: UUID) : list[FoodItem]
+    +find_by_owner(owner_id: UUID) : list[FoodItem]
+    +claim_if_unclaimed(item_id: UUID, member_id: UUID) : bool
+    +delete(item_id: UUID)
+  }
+  interface MemberRepository <<interface>> {
+    +save(member: Member)
+    +find_by_auth0_id(auth0_id: str) : Optional[Member]
+    +find_by_household(household_id: UUID) : list[Member]
+  }
+  interface HouseholdRepository <<interface>> {
+    +save(household: Household)
+    +find_by_invite_code(code: str) : Optional[Household]
+  }
+  interface MealPlanRepository <<interface>> {
+    +save(plan: MealPlan)
+    +find_for_member(member_id: UUID) : Optional[MealPlan]
+  }
+  interface NotificationRepository <<interface>> {
+    +save(notification: Notification)
+    +find_for_member(member_id: UUID) : list[Notification]
+    +delete_for_item(item_id: UUID)
+  }
+  interface ShoppingListRepository <<interface>> {
+    +save(shopping_list: ShoppingList)
+    +find_for_member(member_id: UUID) : ShoppingList
+  }
+  interface SettlementRepository <<interface>> {
+    +save(settlement: Settlement)
+    +find_by_household(household_id: UUID) : list[Settlement]
+    +delete(settlement_id: UUID)
+  }
+
+  class PostgresItemRepository
+  class PostgresMemberRepository
+  class PostgresHouseholdRepository
+  class PostgresMealPlanRepository
+  class PostgresNotificationRepository
+  class PostgresShoppingListRepository
+  class PostgresSettlementRepository
+}
+
+package "External services (adaptees)" <<Cloud>> {
+  class "genai.Client" as GenaiSdk <<Gemini SDK>>
+  class "Ollama HTTP API" as OllamaApi <<external>>
+  class "TheMealDB HTTP API" as MealDbApi <<external>>
+  class "Auth0 API" as Auth0Api <<external>>
+  class "Neon PostgreSQL" as Neon <<external>>
+}
+
+LLMClient <|.. GeminiClient
+LLMClient <|.. OllamaClient
+GeminiClient "1" --> "1" GenaiSdk : adapts
+OllamaClient "1" --> "1" OllamaApi : adapts
+GeminiClient "1" --> "1" RetryPolicy
+OllamaClient "1" --> "1" RetryPolicy
+LLMClientFactory ..> LLMClient : creates
+LLMClientFactory ..> GeminiClient : creates
+LLMClientFactory ..> OllamaClient : creates
+LLMClientFactory ..> Config : reads
+
+RecipeSource <|.. MealDBRecipeSource
+MealDBRecipeSource "1" --> "1" MealDbApi : adapts
+Auth0Client "1" --> "1" Auth0Api
+
+ItemRepository <|.. PostgresItemRepository
+MemberRepository <|.. PostgresMemberRepository
+HouseholdRepository <|.. PostgresHouseholdRepository
+MealPlanRepository <|.. PostgresMealPlanRepository
+NotificationRepository <|.. PostgresNotificationRepository
+ShoppingListRepository <|.. PostgresShoppingListRepository
+SettlementRepository <|.. PostgresSettlementRepository
+PostgresItemRepository "1" --> "1" Database
+PostgresMemberRepository "1" --> "1" Database
+PostgresHouseholdRepository "1" --> "1" Database
+PostgresMealPlanRepository "1" --> "1" Database
+PostgresNotificationRepository "1" --> "1" Database
+PostgresShoppingListRepository "1" --> "1" Database
+PostgresSettlementRepository "1" --> "1" Database
+Database "1" --> "1" Neon
+Database ..> Config : reads
+
+note right of LLMClient
+  <b>Adapter pattern</b>
+  Target: LLMClient, RecipeSource
+  Adapters: GeminiClient, OllamaClient,
+  MealDBRecipeSource
+  Adaptees: the Gemini SDK, the Ollama
+  HTTP API, the TheMealDB HTTP API
+end note
+
+note right of LLMClientFactory
+  <b>Factory Method pattern</b>
+  Creator: LLMClientFactory
+  Factory method: create_client()
+  Product: LLMClient
+  Concrete products: GeminiClient,
+  OllamaClient, chosen by
+  Config.llm_provider
+end note
+
+note right of MealDBRecipeSource
+  The free key searches one ingredient
+  at a time, so search_by_ingredients()
+  runs one request per ingredient and
+  merges the results.
+end note
+
+note "Each Postgres...Repository implements every\nmethod of its interface using SQL (methods\nnot repeated to keep the diagram readable)." as RepoNote
+RepoNote .. PostgresItemRepository
+
+note bottom of ItemRepository
+  claim_if_unclaimed() is a single
+  conditional UPDATE, so when two members
+  claim the same item, only the first wins.
+end note
+@enduml
