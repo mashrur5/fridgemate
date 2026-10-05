@@ -628,29 +628,43 @@ Fridgemate has over 100 classes, so the class diagram is split into seven parts.
 
 ##### Diagram 1: Overview
 
+![Class Diagram 1: Overview](diagrams/class-1-overview.png)
+
 The web app and CLI send requests over HTTPS to the server, which has four layers: API, application, domain and agent, and infrastructure. Calls only go downward, and the domain layer depends on interfaces that the infrastructure layer implements.
 
 ##### Diagram 2: Clients, API and Facade
+
+![Class Diagram 2: Clients, API and Facade](diagrams/class-2-clients-api.png)
 
 Both clients send requests with the user's Auth0 token. `TokenVerifier` checks the token and builds a `RequestContext`, and every router then calls `FridgemateFacade`.
 
 ##### Diagram 3: Domain Model and State
 
+![Class Diagram 3: Domain Model and State](diagrams/class-3-model-state.png)
+
 A `Household` has members and owns its `FoodItem`s. An item with no owner is Shared. Each item holds a `FreshnessState` that decides what the item is allowed to do.
 
 ##### Diagram 4: Services, Observer and Strategy
+
+![Class Diagram 4: Services, Observer and Strategy](diagrams/class-4-services.png)
 
 `InventoryService` notifies its observers whenever the inventory changes. `PlacementService` and `ExpiryService` use the LLM first and fall back to a rule table.
 
 ##### Diagram 5: Commands
 
+![Class Diagram 5: Commands](diagrams/class-5-commands.png)
+
 Every inventory change is a command with `execute()` and `undo()`. `CommandHistory` runs them and keeps an undo stack for each member.
 
 ##### Diagram 6: Agents and Tools
 
+![Class Diagram 6: Agents and Tools](diagrams/class-6-agent-tools.png)
+
 The three agents share `BaseAgent`, which runs the tool loop. Agents reach data only through tools, and tools only call services, so the ownership and expiry rules can't be skipped.
 
 ##### Diagram 7: Infrastructure
+
+![Class Diagram 7: Infrastructure](diagrams/class-7-infrastructure.png)
 
 Adapters connect Fridgemate to Gemini, Ollama, and TheMealDB. `LLMClientFactory` picks the LLM, and each repository stores its data in Neon.
 
@@ -666,10 +680,274 @@ Adapters connect Fridgemate to Gemini, Ollama, and TheMealDB. `LLMClientFactory`
 | **Adapter** (Diagram 7) | Gemini, Ollama, and TheMealDB each have their own API. | Targets: `LLMClient`, `RecipeSource`. Adapters: `GeminiClient`, `OllamaClient`, `MealDBRecipeSource`. Adaptees: the outside APIs. | The agents use one interface, and the adapter hides service limits, like the round and square pegs. | Service-specific code would spread through the agents, and switching LLMs would mean rewriting them. |
 | **Factory Method** (Diagram 7) | The LLM is chosen by configuration, so callers shouldn't name a client class. | Creator: `LLMClientFactory` with `create_client()`. Product: `LLMClient`. Concrete products: `GeminiClient`, `OllamaClient`. | The choice sits in one place, like NameFactory, and completes the Dependency Inversion setup. | The same provider check would be repeated everywhere an LLM is created. |
 
-## 4. Use Cases (Task 2.2)
+### 2.2 Use-Case Diagram and Descriptions
 
-## 5. Sequence Diagrams (Task 2.3)
+#### 2.2.1 Use-Case Diagram
 
-## 6. Traceability Table (Task 3)
+![Use-Case Diagram](diagrams/usecase-diagram.png)
 
-## 7. Feature Implementation Explanations (Task 4)
+The diagram shows everything a household member can do with Fridgemate and which outside services help. It follows the notation from the course slides:
+
+| Symbol | Meaning |
+| --- | --- |
+| Stick figure | An actor: someone or something outside the system that interacts with it |
+| Oval | A use case: one goal an actor can reach with the system |
+| Rectangle | The system boundary; everything inside is part of Fridgemate |
+| Solid line | An actor takes part in a use case |
+| Dashed arrow labeled «include» | The base use case always uses the included one, so its steps are written once instead of copied |
+| Dashed arrow labeled «extend» | Optional behavior added to a base use case at the extension point written inside its oval |
+
+**Actors:**
+
+| Actor | Type | Role |
+| --- | --- | --- |
+| Household Member | Primary user | Uses every feature. The same actor plays the owner who offers an item and the roommate who claims it in UC15. |
+| Gemini LLM | AI service | Reads receipts, estimates locations and expiry dates, and powers the recipe, meal plan, and chat agents |
+| TheMealDB | External API | Supplies real recipes for UC07, UC10, and UC13 |
+| Auth0 | External service | Handles registration, login, and password resets |
+
+There is no administrator, since each member manages their own items and the household manages itself.
+
+Logging in (UC16) is a precondition of every other use case instead of an «include». A member logs in once per session, not once per action, so drawing an «include» from all 15 use cases would add clutter without adding meaning.
+
+#### 2.2.2 Use-Case Descriptions
+
+##### UC01: Manage Inventory Item
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC01 |
+| **Use Case Name** | Manage Inventory Item |
+| **Actor(s)** | Household Member |
+| **Goal** | Keep the household's inventory accurate by adding, editing, or removing items. |
+| **Preconditions** | The member is logged in and belongs to a household. |
+| **Trigger** | The member presses "Add item," Edit, or Remove on the Inventory page. |
+| **Main Success Scenario** | 1. The member fills in the item details and submits them.<br>2. The system checks the values.<br>3. If the location or expiry date is empty, the system runs UC02 or UC04 at the extension point.<br>4. The system saves the change as an undoable command.<br>5. The system updates the expiry alerts and the shopping list.<br>6. The system shows the updated list with an Undo button. |
+| **Alternative/Exception Flows** | 2a. A value is missing or invalid: the system shows an error and saves nothing.<br>4a. The item belongs to a roommate: the system blocks the change.<br>4b. A roommate already removed the item: the system says so and refreshes the list.<br>6a. The member presses Undo: the system reverses the last change. |
+| **Postconditions** | The inventory shows the change, and the change can be undone. |
+| **Related Feature(s)** | F01 |
+
+##### UC02: Suggest Storage Location
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC02 |
+| **Use Case Name** | Suggest Storage Location |
+| **Actor(s)** | Gemini LLM (the member takes part through UC01 or UC03) |
+| **Goal** | Suggest whether a new item belongs in the fridge, freezer, or pantry. |
+| **Preconditions** | An item name has been entered without a location. |
+| **Trigger** | UC01 reaches its extension point, or UC03 needs a location for each item. |
+| **Main Success Scenario** | 1. The system asks Gemini where the item should be stored.<br>2. Gemini returns a location and a short reason.<br>3. The system checks that the location is Fridge, Freezer, or Pantry.<br>4. The system shows the suggestion.<br>5. The member accepts it or picks another location. |
+| **Alternative/Exception Flows** | 2a. Gemini is unavailable or gives an invalid answer: the system uses the rule table instead.<br>2b. The item isn't in the rule table: the member chooses, with Fridge preselected. |
+| **Postconditions** | The item has a location the member agreed to. |
+| **Related Feature(s)** | F02 |
+
+##### UC03: Import Receipt
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC03 |
+| **Use Case Name** | Import Receipt |
+| **Actor(s)** | Household Member, Gemini LLM |
+| **Goal** | Add many items at once from a photo of a grocery receipt. |
+| **Preconditions** | The member is logged in and belongs to a household. |
+| **Trigger** | The member uploads a receipt photo on the Receipt Import page. |
+| **Main Success Scenario** | 1. The member uploads the photo and picks who paid.<br>2. The system sends the image to Gemini.<br>3. Gemini returns the items with names, quantities, and prices.<br>4. The system checks the format and drops non-food lines.<br>5. The system runs UC02 and UC04 for each item.<br>6. The system shows the review popup.<br>7. The member sets each item's owner, removes wrong items, and adds missing ones.<br>8. The member presses Save, and the system adds the items. |
+| **Alternative/Exception Flows** | 3a. The photo can't be read: the system suggests a clearer photo or adding items by hand.<br>3b. Gemini's answer has the wrong format: the system retries once, then shows an error.<br>4a. The receipt contains hidden instructions: the system ignores them.<br>7a. The member removes every item: Save is disabled.<br>7b. The member closes the popup: nothing is saved. |
+| **Postconditions** | The items are in the inventory with their owners, payer, locations, and expiry dates. |
+| **Related Feature(s)** | F03 |
+
+##### UC04: Estimate Expiry
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC04 |
+| **Use Case Name** | Estimate Expiry |
+| **Actor(s)** | Gemini LLM (the member takes part through UC01 or UC03) |
+| **Goal** | Give each item a likely expiry date and a freshness state. |
+| **Preconditions** | The item has a name and location but no expiry date. |
+| **Trigger** | UC01 reaches its extension point, or UC03 needs an expiry date for each item. |
+| **Main Success Scenario** | 1. The system asks Gemini how many days the item lasts in its location.<br>2. Gemini returns a number of days.<br>3. The system checks that the number is in a sensible range.<br>4. The system sets the expiry date and marks it as estimated.<br>5. The system shows the date, and the member can edit it. |
+| **Alternative/Exception Flows** | 2a. Gemini is unavailable or gives an invalid answer: the system uses the rule table.<br>2b. The item isn't in the rule table: the system uses a cautious default and asks the member to check it.<br>5a. The member enters their own date: it is kept and never replaced by an estimate. |
+| **Postconditions** | The item has an expiry date and a freshness state. |
+| **Related Feature(s)** | F04 |
+
+##### UC05: View Expiry Alerts
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC05 |
+| **Use Case Name** | View Expiry Alerts |
+| **Actor(s)** | Household Member |
+| **Goal** | See which items should be used first. |
+| **Preconditions** | The member is logged in and belongs to a household. |
+| **Trigger** | The member logs in or opens the "Use it first" tab. |
+| **Main Success Scenario** | 1. The member opens the app.<br>2. The system loads the member's own and Shared items and works out their freshness.<br>3. The system shows a banner with the number of items expiring soon.<br>4. The member opens the "Use it first" tab.<br>5. The system lists expiring items with the soonest first, and expired items separately. |
+| **Alternative/Exception Flows** | 2a. Nothing is expiring: the system says so and shows no banner.<br>5a. The member wants to offer an expiring item: UC15 runs at the extension point.<br>5b. The member removes an expired item: UC01 handles the removal. |
+| **Postconditions** | The member knows which items to use first. |
+| **Related Feature(s)** | F05 |
+
+##### UC06: Manage Household and Preferences
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC06 |
+| **Use Case Name** | Manage Household and Preferences |
+| **Actor(s)** | Household Member |
+| **Goal** | Create or join a household and save dietary preferences. |
+| **Preconditions** | The member is logged in (UC16). |
+| **Trigger** | The member logs in for the first time, or opens the Household page. |
+| **Main Success Scenario** | 1. On first login, the system asks for the member's name.<br>2. The member chooses "Create a household" or "Join with a code."<br>3. The system creates a household with a new invite code, or finds the household by its code and adds the member.<br>4. The member sets their dietary restrictions and dislikes.<br>5. The system saves them for every AI feature to use. |
+| **Alternative/Exception Flows** | 3a. The invite code is wrong: the system says no household was found.<br>3b. The member already belongs to a household: the system says so, since switching isn't supported in this version. |
+| **Postconditions** | The member belongs to a household and has saved preferences. |
+| **Related Feature(s)** | F06 |
+
+##### UC07: Get Recipe Suggestions
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC07 |
+| **Use Case Name** | Get Recipe Suggestions |
+| **Actor(s)** | Household Member, Gemini LLM, TheMealDB |
+| **Goal** | Get recipes that fit the member's choices and use the food they actually have. |
+| **Preconditions** | The member is logged in and belongs to a household. |
+| **Trigger** | The member presses "Get recipes" on the Recipes page. |
+| **Main Success Scenario** | 1. The member picks the cuisine, cooking time, meal weight, and servings, or "Let AI decide" for any of them.<br>2. The system gathers the member's own and Shared items and removes roommates' and expired items.<br>3. The system ranks the items, with expiring and offered items first.<br>4. The system searches TheMealDB using the most urgent ingredients.<br>5. Gemini estimates each recipe's time and weight, removes ones that don't fit, and decides any open options.<br>6. The system runs UC08 for each recipe.<br>7. The system shows up to 5 ranked recipes with explanations. |
+| **Alternative/Exception Flows** | 2a. The member has no usable items: the system suggests UC10 or UC11.<br>4a. TheMealDB is unavailable: the agent writes its own recipes, labels them AI-generated, and checks them against stock.<br>5a. Too few recipes fit: the agent writes one, labeled AI-generated.<br>5b. No recipe fits every option: the system shows the closest matches and says which option couldn't be met.<br>5c. The agent reaches its step limit: the system shows what it found, with a note.<br>7a. The member picks "Cook this": UC09 runs at the extension point. |
+| **Postconditions** | The member sees recipes that are checked against their real stock. |
+| **Related Feature(s)** | F07 |
+
+##### UC08: Check Missing Ingredients
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC08 |
+| **Use Case Name** | Check Missing Ingredients |
+| **Actor(s)** | Gemini LLM (the member takes part through UC07, UC10, or UC13) |
+| **Goal** | Show which ingredients are available, short, or missing, with substitutes. |
+| **Preconditions** | A candidate recipe and the member's ingredients are available. |
+| **Trigger** | UC07, UC10, or UC13 includes it for each recipe. |
+| **Main Success Scenario** | 1. The system matches each ingredient to the member's items, converts units, and compares amounts.<br>2. The system marks each ingredient as available, short, or missing.<br>3. The system asks Gemini for substitutes, chosen only from the member's usable items.<br>4. The system checks each substitute: in stock, not expired, not a roommate's, and allowed by preferences.<br>5. The system shows the results on the recipe card. |
+| **Alternative/Exception Flows** | 1a. A unit can't be converted, like "a pinch": the ingredient is marked "check amount."<br>3a. Gemini is unavailable: missing ingredients are shown without substitutes.<br>4a. A substitute fails the check: it is dropped.<br>5a. The member adds missing ingredients to the shopping list: UC11 handles it. |
+| **Postconditions** | Every ingredient on the recipe has a clear status. |
+| **Related Feature(s)** | F08 |
+
+##### UC09: Cook Recipe
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC09 |
+| **Use Case Name** | Cook Recipe |
+| **Actor(s)** | Household Member (through UC07 or UC13) |
+| **Goal** | Update the inventory after cooking a recipe. |
+| **Preconditions** | The member has picked a recipe in UC07 or a planned meal in UC13. |
+| **Trigger** | The member presses "Cook this." |
+| **Main Success Scenario** | 1. The system shows how much of each item will be taken.<br>2. The member adjusts amounts if needed and adds any leftovers.<br>3. The member confirms.<br>4. The system checks that every item still has enough left.<br>5. The system subtracts the amounts, converting units, and removes items that reach zero.<br>6. The system adds leftovers as a new item with an estimated expiry date.<br>7. The system saves everything as one undoable command and shows a summary with an Undo button. |
+| **Alternative/Exception Flows** | 4a. An item no longer has enough: the system shows which ones, and the member adjusts or cancels.<br>5a. A unit can't be converted: the member enters the amount in the item's own unit.<br>7a. The member presses Undo: the system restores every quantity and removes the leftovers. |
+| **Postconditions** | Quantities are updated and leftovers are in the inventory. |
+| **Related Feature(s)** | F09 |
+
+##### UC10: Find Recipes by Ingredients
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC10 |
+| **Use Case Name** | Find Recipes by Ingredients |
+| **Actor(s)** | Household Member, Gemini LLM, TheMealDB |
+| **Goal** | Get recipe ideas for food that isn't tracked in the app. |
+| **Preconditions** | The member is logged in. |
+| **Trigger** | The member presses "Find recipes" on the Quick Finder page. |
+| **Main Success Scenario** | 1. The member types ingredients and picks the same options as UC07.<br>2. The system cleans the list.<br>3. The system searches TheMealDB.<br>4. Gemini estimates time and weight and removes recipes that don't fit.<br>5. The system runs UC08 against the typed list.<br>6. The system shows up to 5 ranked recipes. |
+| **Alternative/Exception Flows** | 1a. The list is empty: "Find recipes" stays disabled.<br>2a. Some entries aren't food: the system skips them and says which ones.<br>2b. The typed text contains hidden instructions: it is treated as ingredient names only.<br>3a. TheMealDB or Gemini fails: the system behaves as in UC07. |
+| **Postconditions** | The member sees recipes for the ingredients they typed. |
+| **Related Feature(s)** | F10 |
+
+##### UC11: Generate Shopping List
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC11 |
+| **Use Case Name** | Generate Shopping List |
+| **Actor(s)** | Household Member, Gemini LLM |
+| **Goal** | Keep an up-to-date shopping list without duplicates. |
+| **Preconditions** | The member is logged in. |
+| **Trigger** | The member adds missing ingredients from a recipe or plan, an item runs low, or the member adds an item by hand. |
+| **Main Success Scenario** | 1. An item arrives at the list.<br>2. Gemini matches it to any similar item already there and picks a store section.<br>3. The system converts units and merges duplicates.<br>4. The system shows the list grouped by section.<br>5. The member checks items off, and the system removes them. |
+| **Alternative/Exception Flows** | 1a. The member already has enough of the item: it isn't added.<br>2a. Gemini is unavailable: only exact name matches are merged, with no sections.<br>3a. Units can't be merged: both lines stay under the same item. |
+| **Postconditions** | The shopping list is merged and up to date. |
+| **Related Feature(s)** | F11 |
+
+##### UC12: Issue Natural-Language Command
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC12 |
+| **Use Case Name** | Issue Natural-Language Command |
+| **Actor(s)** | Household Member, Gemini LLM |
+| **Goal** | Update the inventory by typing in plain English. |
+| **Preconditions** | The member is logged in and belongs to a household. |
+| **Trigger** | The member sends a message on the Chat page. |
+| **Main Success Scenario** | 1. The member types a message, such as "I finished the milk, add 6 eggs."<br>2. The agent looks up the items the message mentions.<br>3. Gemini turns the message into proposed changes.<br>4. The system checks each change.<br>5. The system shows the proposed changes.<br>6. The member confirms.<br>7. The system runs each change as an undoable command and saves the conversation. |
+| **Alternative/Exception Flows** | 3a. An item is unclear, such as two milks: the agent asks which one.<br>3b. The request isn't supported: the agent explains what it can do.<br>4a. A change involves a roommate's item: it is left out with an explanation.<br>4b. A quantity is invalid: the agent asks the member to correct it.<br>6a. The member cancels: nothing changes. |
+| **Postconditions** | The inventory is updated exactly as the member confirmed. |
+| **Related Feature(s)** | F12 |
+
+##### UC13: Plan Waste-Rescue Meals
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC13 |
+| **Use Case Name** | Plan Waste-Rescue Meals |
+| **Actor(s)** | Household Member, Gemini LLM, TheMealDB |
+| **Goal** | Get a meal plan that uses food before it expires. |
+| **Preconditions** | The member is logged in and has usable items. |
+| **Trigger** | The member presses "Plan my meals" on the Meal Plan page. |
+| **Main Success Scenario** | 1. The member picks the number of days, meals per day, and maximum cooking time.<br>2. The agent collects the member's usable items and sorts them by expiry date.<br>3. The agent assigns each expiring item to a day before it expires.<br>4. The agent searches TheMealDB for recipes, and Gemini estimates their cooking times.<br>5. The system runs UC08 for each meal.<br>6. The agent checks that the whole plan fits the stock and repeats no dish, and re-plans any day that fails.<br>7. The system saves and shows the plan. |
+| **Alternative/Exception Flows** | 2a. There isn't enough food for every day: the agent plans what it can and says which days are missing.<br>4a. There aren't enough different recipes: the agent writes new ones, labeled AI-generated.<br>4b. A service fails partway: the system shows the days already planned.<br>7a. The stock changes later: the plan is marked as needing an update, and the member can re-plan.<br>7b. The member cooks a planned meal: UC09 runs at the extension point. |
+| **Postconditions** | A saved meal plan that uses expiring food first. |
+| **Related Feature(s)** | F13 |
+
+##### UC14: Split Shared Costs
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC14 |
+| **Use Case Name** | Split Shared Costs |
+| **Actor(s)** | Household Member |
+| **Goal** | Know who owes whom for shared groceries. |
+| **Preconditions** | The member is logged in, and the household has Shared items with prices. |
+| **Trigger** | The member opens the Cost Split page. |
+| **Main Success Scenario** | 1. The member picks a period.<br>2. The system collects Shared items with a price, leaving out offered items.<br>3. The system splits each cost equally among members.<br>4. The system works out each member's balance and the fewest payments to settle up.<br>5. The system shows the results.<br>6. The member marks a payment as paid, and the system recalculates. |
+| **Alternative/Exception Flows** | 2a. An item has no price or payer: it is listed separately and left out until fixed.<br>3a. The household has only one member: the system says there's nothing to split.<br>6a. A payment was marked by mistake: the member removes it, and the system recalculates. |
+| **Postconditions** | Every member's balance is up to date. |
+| **Related Feature(s)** | F14 |
+
+##### UC15: Offer and Claim Expiring Item
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC15 |
+| **Use Case Name** | Offer and Claim Expiring Item |
+| **Actor(s)** | Household Member (as the owner who offers, and as the roommate who claims) |
+| **Goal** | Pass food that would be wasted to a roommate who will use it. |
+| **Preconditions** | The owner has an item in the Expiring soon state, and the household has another member. |
+| **Trigger** | The owner presses "Offer to household" in UC05 or in the item's details. |
+| **Main Success Scenario** | 1. The owner offers the item, with an optional note.<br>2. The system checks that the member owns it and that it's expiring soon.<br>3. The system marks the item as Shared and offered.<br>4. The system notifies every other member.<br>5. A roommate presses Claim.<br>6. The system makes the roommate the new owner.<br>7. The system tells the original owner who claimed it. |
+| **Alternative/Exception Flows** | 2a. The item isn't expiring soon, or has already expired: the offer isn't allowed.<br>5a. Two roommates claim at once: the first one wins, and the second is told it's taken.<br>5b. The owner withdraws the offer before anyone claims it: the item goes back to the owner.<br>5c. Nobody claims it: it stays Shared until it expires, then the offer closes. |
+| **Postconditions** | The item has a new owner, or stays Shared for anyone to use. |
+| **Related Feature(s)** | F15 |
+
+##### UC16: Manage Account
+
+| Field | Description |
+| --- | --- |
+| **Use Case ID** | UC16 |
+| **Use Case Name** | Manage Account |
+| **Actor(s)** | Household Member, Auth0 |
+| **Goal** | Register, log in, log out, or change the password. |
+| **Preconditions** | None. |
+| **Trigger** | The member opens the app without being logged in, or chooses Log out or Change password. |
+| **Main Success Scenario** | 1. The member opens the app.<br>2. The system sends the member to Auth0's login page.<br>3. The member registers or logs in.<br>4. Auth0 sends the member back to the app with a login token.<br>5. The system checks the token and opens the app.<br>6. On first login, the member continues to household setup in UC06. |
+| **Alternative/Exception Flows** | 3a. The email or password is wrong: Auth0 shows an error.<br>3b. The email is already registered: Auth0 asks the member to log in instead.<br>5a. The session has expired: the system sends the member back to the login page.<br>6a. The member chooses Change password: Auth0 emails a reset link.<br>6b. The member logs out: the system clears the login. |
+| **Postconditions** | The member is logged in, or logged out if they chose to. |
+| **Related Feature(s)** | Supporting functionality (not counted as a feature) |
