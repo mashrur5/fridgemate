@@ -1,0 +1,1448 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>380</x>
+      <y>320</y>
+      <w>420</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*App*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>140</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ProfileSetupPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>260</x>
+      <y>140</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*HouseholdPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>430</x>
+      <y>140</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*InventoryPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>600</x>
+      <y>140</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*NotificationsPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>800</x>
+      <y>140</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ReceiptImportPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1020</x>
+      <y>140</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*RecipePage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>540</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*QuickFinderPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>270</x>
+      <y>540</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*MealPlanPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>450</x>
+      <y>540</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ShoppingListPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>660</x>
+      <y>540</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CostSplitPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>840</x>
+      <y>540</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CommandChatPage*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>900</x>
+      <y>300</y>
+      <w>570</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>*ApiClient*
+--
+-baseUrl : string
+--
++request(method: string, path: string, body?: object) : Promise&lt;object&gt;
++getItems(filters: object) : Promise&lt;FoodItem[]&gt;
++importReceipt(photo: File) : Promise&lt;FoodItem[]&gt;
++suggestRecipes(request: RecipeRequest) : Promise&lt;RecipeSuggestion[]&gt;
++offerItem(itemId: string, note: string) : Promise&lt;void&gt;
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1210</x>
+      <y>540</y>
+      <w>170</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*Auth0 React SDK*
+«library»
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>60</x>
+      <y>780</y>
+      <w>490</w>
+      <h>190</h>
+    </coordinates>
+    <panel_attributes>*FridgemateCLI*
+--
++items(action: str)
++receipt_import(photo: Path)
++recipes_suggest(cuisine: str, time: str, weight: str, servings: int)
++cook(recipe_id: str, servings: int, leftovers: int)
++do(message: str)
++plan(days: int)
++offer(item: str)
++login()
++logout()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>780</y>
+      <w>450</w>
+      <h>80</h>
+    </coordinates>
+    <panel_attributes>*FridgemateClient*
+--
+-base_url : str
+--
++request(method: str, path: str, body: Optional[dict]) : dict
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>620</x>
+      <y>900</y>
+      <w>170</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>*DeviceLogin*
+--
+-auth0_domain : str
+-client_id : str
+--
++login() : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1150</x>
+      <y>880</y>
+      <w>190</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>*TokenStore*
+--
++save(token: str)
++load() : Optional[str]
++clear()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1920</x>
+      <y>820</y>
+      <w>360</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*TokenVerifier*
+--
+-auth : Auth0Client
+-facade : FridgemateFacade
+--
++verify(token: str) : dict
++current_context(token: str) : RequestContext
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>130</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*AccountRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>190</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*HouseholdRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>670</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*InventoryRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>250</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ReceiptRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>310</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*RecipeRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>370</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*MealPlanRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>430</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ShoppingRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>490</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CostRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>550</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CommandRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1950</x>
+      <y>610</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*NotificationRouter*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2450</x>
+      <y>830</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>*RequestContext*
+--
++member : Member
++household : Household
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2450</x>
+      <y>160</y>
+      <w>810</w>
+      <h>530</h>
+    </coordinates>
+    <panel_attributes>*FridgemateFacade*
+--
++load_context(auth0_id: str) : RequestContext
++set_profile(ctx: RequestContext, name: str) : Member
++update_preferences(ctx: RequestContext, restrictions: list[str], dislikes: list[str]) : Member
++request_password_reset(ctx: RequestContext)
++create_household(ctx: RequestContext, name: str) : Household
++join_household(ctx: RequestContext, invite_code: str) : Household
++get_items(ctx: RequestContext, filters: dict) : list[FoodItem]
++add_item(ctx: RequestContext, item: FoodItem) : FoodItem
++update_item(ctx: RequestContext, item: FoodItem) : FoodItem
++remove_item(ctx: RequestContext, item_id: UUID)
++suggest_location(item_name: str) : tuple[Location, str]
++import_receipt(ctx: RequestContext, image: bytes) : list[FoodItem]
++save_receipt_items(ctx: RequestContext, items: list[FoodItem], payer_id: UUID) : int
++get_alerts(ctx: RequestContext) : list[FoodItem]
++suggest_recipes(ctx: RequestContext, request: RecipeRequest) : list[RecipeSuggestion]
++find_recipes(ctx: RequestContext, names: list[str], request: RecipeRequest) : list[RecipeSuggestion]
++cook_recipe(ctx: RequestContext, recipe: Recipe, servings: int, amounts: dict[UUID, Quantity], leftovers: int)
++undo(ctx: RequestContext) : bool
++run_command(ctx: RequestContext, message: str) : ProposedChanges
++confirm_changes(ctx: RequestContext, changes: ProposedChanges)
++plan_meals(ctx: RequestContext, days: int, meals_per_day: int, max_time: CookingTime) : MealPlan
++replan_meals(ctx: RequestContext) : MealPlan
++build_shopping_list(ctx: RequestContext) : ShoppingList
++add_to_shopping_list(ctx: RequestContext, ingredients: list[RecipeIngredient])
++split_costs(ctx: RequestContext, start: date, end: date) : list[Settlement]
++mark_paid(ctx: RequestContext, settlement_id: UUID)
++offer_item(ctx: RequestContext, item_id: UUID, note: str)
++withdraw_offer(ctx: RequestContext, item_id: UUID)
++claim_item(ctx: RequestContext, item_id: UUID) : bool
++get_notifications(ctx: RequestContext) : list[Notification]
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>130</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*InventoryService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>190</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*HouseholdService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>250</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*AccountService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>310</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*PlacementService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>370</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ExpiryService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>430</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CookingService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>490</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ShoppingListService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>550</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CostSplitService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>610</y>
+      <w>190</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*NotificationService*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>670</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ExpiryAlertNotifier*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>730</y>
+      <w>170</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*CommandHistory*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>790</y>
+      <w>120</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*RecipeAgent*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>850</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*MealPlanAgent*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>910</y>
+      <w>210</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*FridgeCommandAgent*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3450</x>
+      <y>970</y>
+      <w>140</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*ReceiptParser*
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>2030</x>
+      <y>1060</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*Auth0Client*
+(see Diagram 7)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>3060</x>
+      <y>980</y>
+      <w>190</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>«interface»
+*/MealPlanRepository/*
+(see Diagram 7)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>2700</x>
+      <y>820</y>
+      <w>390</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>*Facade pattern*
+Facade: FridgemateFacade
+Clients: the 10 FastAPI routers
+Subsystem: services, agents and CommandHistory
+Every method takes a RequestContext, so every
+call is limited to the member's own household.
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1460</x>
+      <y>520</y>
+      <w>350</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>Every page calls ApiClient, and both clients
+send each request with the member's Auth0
+token. Every router checks that token with
+TokenVerifier (one dependency is drawn to
+keep the diagram readable).
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>208</x>
+      <y>170</y>
+      <w>194</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>184.0;150.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>378</x>
+      <y>170</y>
+      <w>68</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>58.0;150.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>490</x>
+      <y>170</y>
+      <w>20</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;150.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>675</x>
+      <y>170</y>
+      <w>20</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;150.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>734</x>
+      <y>170</y>
+      <w>88</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;150.0;78.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>778</x>
+      <y>170</y>
+      <w>264</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;150.0;254.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>208</x>
+      <y>350</y>
+      <w>194</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>184.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>385</x>
+      <y>350</y>
+      <w>61</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>51.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>525</x>
+      <y>350</y>
+      <w>20</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>690</x>
+      <y>350</y>
+      <w>50</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;40.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>778</x>
+      <y>350</y>
+      <w>84</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;74.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>734</x>
+      <y>350</y>
+      <w>526</w>
+      <h>200</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;46.0;140.0;516.0;140.0;516.0;190.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>790</x>
+      <y>330</y>
+      <w>120</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;110.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1285</x>
+      <y>430</y>
+      <w>20</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1
+gets token</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1460</x>
+      <y>360</y>
+      <w>440</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+HTTPS + token</panel_attributes>
+    <additional_attributes>10.0;10.0;430.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>540</x>
+      <y>810</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>540</x>
+      <y>925</y>
+      <w>90</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;80.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>780</x>
+      <y>925</y>
+      <w>380</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.5;370.0;10.5</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1060</x>
+      <y>838</y>
+      <w>100</w>
+      <h>64</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;90.0;54.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1060</x>
+      <y>794</y>
+      <w>840</w>
+      <h>36</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+HTTPS + token</panel_attributes>
+    <additional_attributes>10.0;10.0;830.0;26.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2080</x>
+      <y>148</y>
+      <w>380</w>
+      <h>34</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;370.0;24.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2110</x>
+      <y>203</y>
+      <w>350</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2110</x>
+      <y>670</y>
+      <w>350</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2080</x>
+      <y>260</y>
+      <w>380</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;370.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2080</x>
+      <y>320</y>
+      <w>380</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;370.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2080</x>
+      <y>380</y>
+      <w>380</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;370.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2110</x>
+      <y>440</y>
+      <w>350</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2060</x>
+      <y>500</y>
+      <w>400</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;390.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2110</x>
+      <y>560</y>
+      <w>350</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2110</x>
+      <y>620</y>
+      <w>350</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;340.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2025</x>
+      <y>700</y>
+      <w>20</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+uses</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;120.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2270</x>
+      <y>855</y>
+      <w>190</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+creates</panel_attributes>
+    <additional_attributes>10.0;10.0;180.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2090</x>
+      <y>920</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2258</x>
+      <y>680</y>
+      <w>214</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1
+load_context()</panel_attributes>
+    <additional_attributes>10.0;140.0;204.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>148</y>
+      <w>210</w>
+      <h>33</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;24.0;200.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>199</y>
+      <w>210</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.1;200.0;10.1</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>234</y>
+      <w>210</w>
+      <h>46</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.3;200.0;36.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>270</y>
+      <w>210</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.4;200.0;60.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>306</y>
+      <w>210</w>
+      <h>94</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.6;200.0;84.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>342</y>
+      <w>210</w>
+      <h>118</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.7;200.0;108.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>378</y>
+      <w>210</w>
+      <h>142</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.9;200.0;132.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>415</y>
+      <w>210</w>
+      <h>165</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;200.0;155.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>451</y>
+      <w>210</w>
+      <h>189</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.1;200.0;179.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>487</y>
+      <w>210</w>
+      <h>205</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.3;200.0;195.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>523</y>
+      <w>210</w>
+      <h>229</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.4;200.0;219.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>559</y>
+      <w>210</w>
+      <h>253</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.6;200.0;243.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>595</y>
+      <w>210</w>
+      <h>277</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.7;200.0;267.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>631</y>
+      <w>210</w>
+      <h>301</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.9;200.0;291.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3250</x>
+      <y>668</y>
+      <w>210</w>
+      <h>324</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;200.0;314.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>3145</x>
+      <y>680</y>
+      <w>20</w>
+      <h>310</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1
+saves plans</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;300.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2545</x>
+      <y>680</y>
+      <w>20</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+receives</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>2885</x>
+      <y>680</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;140.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1448</x>
+      <y>430</y>
+      <w>34</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>24.0;90.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>30</x>
+      <y>80</y>
+      <w>1810</w>
+      <h>570</h>
+    </coordinates>
+    <panel_attributes>web (React, TypeScript)
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>30</x>
+      <y>720</y>
+      <w>1340</w>
+      <h>310</h>
+    </coordinates>
+    <panel_attributes>cli (Python)
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>1890</x>
+      <y>70</y>
+      <w>420</w>
+      <h>890</h>
+    </coordinates>
+    <panel_attributes>server.api
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>2420</x>
+      <y>100</y>
+      <w>870</w>
+      <h>870</h>
+    </coordinates>
+    <panel_attributes>server.application
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>3420</x>
+      <y>70</y>
+      <w>490</w>
+      <h>970</h>
+    </coordinates>
+    <panel_attributes>Subsystem behind the facade (Diagrams 4 to 6)
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>20</x>
+      <y>10</y>
+      <w>1400</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*Fridgemate Class Diagram 2: Clients, API and Facade (web, cli, server.api, server.application)*
+fontsize=18</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>

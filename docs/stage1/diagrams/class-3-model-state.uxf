@@ -1,0 +1,916 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>700</x>
+      <y>110</y>
+      <w>160</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>*Household*
+--
++id : UUID
++name : str
++invite_code : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>420</x>
+      <y>470</y>
+      <w>240</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>*Member*
+--
++id : UUID
++auth0_id : str
++name : str
++email : str
++dietary_restrictions : list[str]
++disliked_ingredients : list[str]
+--
++allows(ingredient: str) : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1000</x>
+      <y>280</y>
+      <w>260</w>
+      <h>370</h>
+    </coordinates>
+    <panel_attributes>*FoodItem*
+--
++id : UUID
++name : str
++quantity : Quantity
++original_amount : float
++location : Location
++owner : Optional[Member]
++is_offered : bool
++offered_by : Optional[Member]
++price : Optional[Decimal]
++payer : Optional[Member]
++added_on : date
++expiry_date : date
++expiry_estimated : bool
+-state : FreshnessState
+--
++refresh_state(today: date)
++can_use_in_recipe() : bool
++can_offer() : bool
++alert_priority() : int
++is_shared() : bool
++is_low() : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1035</x>
+      <y>800</y>
+      <w>190</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>*Quantity*
+--
++amount : float
++unit : str
+--
++to(unit: str) : Quantity
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1400</x>
+      <y>300</y>
+      <w>130</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>«enumeration»
+*Location*
+--
+FRIDGE
+FREEZER
+PANTRY
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1600</x>
+      <y>520</y>
+      <w>230</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>«interface»
+*/FreshnessState/*
+--
++can_use_in_recipe() : bool
++can_offer() : bool
++alert_priority() : int
++label() : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1330</x>
+      <y>760</y>
+      <w>230</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*FreshState*
+--
++can_use_in_recipe() : bool
++can_offer() : bool
++alert_priority() : int
++label() : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1600</x>
+      <y>760</y>
+      <w>230</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*ExpiringSoonState*
+--
++can_use_in_recipe() : bool
++can_offer() : bool
++alert_priority() : int
++label() : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1870</x>
+      <y>760</y>
+      <w>230</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*ExpiredState*
+--
++can_use_in_recipe() : bool
++can_offer() : bool
++alert_priority() : int
++label() : str
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>560</x>
+      <y>1170</y>
+      <w>300</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>*Recipe*
+--
++id : str
++name : str
++cuisine : str
++instructions : str
++source : str
++estimated_minutes : Optional[int]
++meal_weight : Optional[MealWeight]
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1040</x>
+      <y>1280</y>
+      <w>180</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>*RecipeIngredient*
+--
++name : str
++quantity : Quantity
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1170</y>
+      <w>320</w>
+      <h>130</h>
+    </coordinates>
+    <panel_attributes>*RecipeRequest*
+--
++cuisine : Optional[Cuisine]
++cooking_time : Optional[CookingTime]
++meal_weight : Optional[MealWeight]
++servings : Optional[int]
+--
++open_choices() : list[str]
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>1400</y>
+      <w>130</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>«enumeration»
+*Cuisine*
+--
+ITALIAN
+INDIAN
+CHINESE
+MEXICAN
+...
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>220</x>
+      <y>1400</y>
+      <w>160</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>«enumeration»
+*CookingTime*
+--
+UNDER_15
+FROM_15_TO_30
+FROM_30_TO_60
+OVER_60
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>600</x>
+      <y>1420</y>
+      <w>130</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>«enumeration»
+*MealWeight*
+--
+LIGHT
+MEDIUM
+HEAVY
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1320</x>
+      <y>980</y>
+      <w>260</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>*RecipeSuggestion*
+--
++recipe : Recipe
++used_items : list[FoodItem]
++missing : list[RecipeIngredient]
++substitutes : dict[str, str]
++ai_choices : dict[str, str]
++explanation : str
++score : float
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>570</x>
+      <y>760</y>
+      <w>340</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>*MealPlan*
+--
++id : UUID
++created_on : date
++days : int
++meals_per_day : int
++needs_update : bool
+--
++check_against(items: list[FoodItem]) : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>650</x>
+      <y>980</y>
+      <w>180</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>*PlannedMeal*
+--
++day : date
++slot : int
++item_ids : list[UUID]
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>290</x>
+      <y>760</y>
+      <w>240</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>*ShoppingList*
+--
++add(item: ShoppingListItem)
++check(item_id: UUID)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>320</x>
+      <y>970</y>
+      <w>180</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>*ShoppingListItem*
+--
++id : UUID
++name : str
++quantity : Quantity
++section : str
++reason : str
++shared : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>150</x>
+      <y>280</y>
+      <w>210</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*Settlement*
+--
++from_member : Member
++to_member : Member
++amount : Decimal
++paid : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>40</x>
+      <y>760</y>
+      <w>210</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>*Notification*
+--
++id : UUID
++message : str
++item_id : Optional[UUID]
++created_at : datetime
++read : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>1880</x>
+      <y>490</y>
+      <w>320</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>*State pattern*
+Context: FoodItem
+State: FreshnessState
+Concrete states: FreshState,
+ExpiringSoonState, ExpiredState
+FoodItem.refresh_state() picks the state
+from the expiry date (Expiring soon =
+within 3 days); the item then delegates
+can_use_in_recipe(), can_offer(),
+alert_priority() and label() to it.
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>660</x>
+      <y>670</y>
+      <w>320</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>owner = None means the item is Shared.
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>40</x>
+      <y>1080</y>
+      <w>220</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>A field set to None means
+"Let AI decide".
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>638</x>
+      <y>190</y>
+      <w>84</w>
+      <h>290</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..*
+r2=members</panel_attributes>
+    <additional_attributes>74.0;10.0;10.0;280.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>178</y>
+      <w>160</w>
+      <h>124</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..*
+r2=inventory</panel_attributes>
+    <additional_attributes>10.0;10.0;150.0;114.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>650</x>
+      <y>520</y>
+      <w>360</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1
+r2=owner</panel_attributes>
+    <additional_attributes>350.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>650</x>
+      <y>564</y>
+      <w>360</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1
+r2=payer</panel_attributes>
+    <additional_attributes>350.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>650</x>
+      <y>608</y>
+      <w>360</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1
+r2=offered_by</panel_attributes>
+    <additional_attributes>350.0;30.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1120</x>
+      <y>640</y>
+      <w>20</w>
+      <h>170</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;160.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1250</x>
+      <y>345</y>
+      <w>160</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;150.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1250</x>
+      <y>570</y>
+      <w>360</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=0..*
+m2=1
+r2=state</panel_attributes>
+    <additional_attributes>10.0;10.0;350.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1538</x>
+      <y>630</y>
+      <w>84</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>74.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1705</x>
+      <y>630</y>
+      <w>20</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1808</x>
+      <y>630</y>
+      <w>84</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;74.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>1295</y>
+      <w>200</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..*
+r2=ingredients</panel_attributes>
+    <additional_attributes>10.0;10.0;190.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1120</x>
+      <y>890</y>
+      <w>20</w>
+      <h>400</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;390.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>95</x>
+      <y>1290</y>
+      <w>20</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>280</x>
+      <y>1290</y>
+      <w>20</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>350</x>
+      <y>1278</y>
+      <w>260</w>
+      <h>164</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1</panel_attributes>
+    <additional_attributes>10.0;10.0;250.0;154.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>655</x>
+      <y>1320</y>
+      <w>20</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;100.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>1118</y>
+      <w>480</w>
+      <h>74</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1</panel_attributes>
+    <additional_attributes>470.0;10.0;10.0;64.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1238</x>
+      <y>640</y>
+      <w>104</w>
+      <h>350</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..*
+r2=used_items</panel_attributes>
+    <additional_attributes>94.0;340.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1198</x>
+      <y>1130</y>
+      <w>144</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=0..*
+r2=missing</panel_attributes>
+    <additional_attributes>134.0;10.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>605</x>
+      <y>620</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=0..*
+r2=plans</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>730</x>
+      <y>890</y>
+      <w>20</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..*
+r2=meals</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>730</x>
+      <y>1060</y>
+      <w>20</w>
+      <h>120</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;110.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>465</x>
+      <y>620</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1
+r2=list</panel_attributes>
+    <additional_attributes>10.5;10.0;10.5;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>820</y>
+      <w>20</w>
+      <h>160</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..*
+r2=items</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;150.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>400</x>
+      <y>860</y>
+      <w>645</w>
+      <h>260</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=1</panel_attributes>
+    <additional_attributes>10.0;250.0;10.0;250.0;590.0;250.0;590.0;10.0;635.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>350</x>
+      <y>178</y>
+      <w>360</w>
+      <h>124</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..*
+r2=payments</panel_attributes>
+    <additional_attributes>350.0;10.0;10.0;114.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>190</x>
+      <y>380</y>
+      <w>240</w>
+      <h>180</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=from_member</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;170.0;230.0;170.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>338</x>
+      <y>380</y>
+      <w>104</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=to_member</panel_attributes>
+    <additional_attributes>10.0;10.0;94.0;90.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>228</x>
+      <y>620</y>
+      <w>214</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=0..*
+r2=inbox</panel_attributes>
+    <additional_attributes>204.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1820</x>
+      <y>570</y>
+      <w>70</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>60.0;10.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>958</x>
+      <y>640</y>
+      <w>64</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;30.0;54.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>140</x>
+      <y>1120</y>
+      <w>20</w>
+      <h>60</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;50.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>10</x>
+      <y>50</y>
+      <w>2220</w>
+      <h>1520</h>
+    </coordinates>
+    <panel_attributes>server.domain.model
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>20</x>
+      <y>10</y>
+      <w>1400</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*Fridgemate Class Diagram 3: Domain Model and State Pattern (server.domain.model)*
+fontsize=18</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>
