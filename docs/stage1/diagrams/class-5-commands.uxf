@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1090</x>
+      <y>260</y>
+      <w>180</w>
+      <h>90</h>
+    </coordinates>
+    <panel_attributes>«interface»
+*/InventoryCommand/*
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>460</x>
+      <y>470</y>
+      <w>170</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>*AddItemCommand*
+--
+-item : FoodItem
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>670</x>
+      <y>470</y>
+      <w>190</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*UpdateItemCommand*
+--
+-item : FoodItem
+-before : FoodItem
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>900</x>
+      <y>470</y>
+      <w>200</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*RemoveItemCommand*
+--
+-item_id : UUID
+-removed : FoodItem
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1140</x>
+      <y>470</y>
+      <w>320</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*CookRecipeCommand*
+--
+-deductions : list[tuple[UUID, Quantity]]
+-leftover : Optional[FoodItem]
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1500</x>
+      <y>470</y>
+      <w>180</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*OfferItemCommand*
+--
+-item_id : UUID
+-note : str
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1720</x>
+      <y>470</y>
+      <w>180</w>
+      <h>110</h>
+    </coordinates>
+    <panel_attributes>*ClaimItemCommand*
+--
+-item_id : UUID
+-claimer_id : UUID
+--
++execute()
++undo()
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>460</x>
+      <y>260</y>
+      <w>450</w>
+      <h>100</h>
+    </coordinates>
+    <panel_attributes>*CommandHistory*
+--
+-history : dict[UUID, list[InventoryCommand]]
+--
++run(ctx: RequestContext, command: InventoryCommand)
++undo_last(ctx: RequestContext) : bool
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1400</x>
+      <y>260</y>
+      <w>310</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>*ProposedChanges*
+--
++commands : list[InventoryCommand]
++summary : list[str]
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>720</x>
+      <y>780</y>
+      <w>820</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*InventoryService*
+(receiver, see Diagram 4)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>920</x>
+      <y>80</y>
+      <w>190</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*FridgemateFacade*
+(client, see Diagram 2)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1640</x>
+      <y>780</y>
+      <w>140</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*CookingService*
+(see Diagram 4)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLClass</id>
+    <coordinates>
+      <x>1450</x>
+      <y>80</y>
+      <w>210</w>
+      <h>50</h>
+    </coordinates>
+    <panel_attributes>*FridgeCommandAgent*
+(see Diagram 6)
+bg=white</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>UMLNote</id>
+    <coordinates>
+      <x>60</x>
+      <y>250</y>
+      <w>360</w>
+      <h>300</h>
+    </coordinates>
+    <panel_attributes>*Command pattern*
+Command: InventoryCommand
+Concrete commands: AddItemCommand,
+UpdateItemCommand, RemoveItemCommand,
+CookRecipeCommand, OfferItemCommand,
+ClaimItemCommand
+Invoker: CommandHistory (one undo
+stack per member, kept in memory)
+Receiver: InventoryService
+Client: FridgemateFacade
+Each command stores what it needs
+for undo(), e.g. RemoveItemCommand
+keeps the removed item.
+Withdrawing an F15 offer runs
+OfferItemCommand.undo(). Claims are
+final, so ClaimItemCommand is not
+added to the undo history.
+bg=#FFFFE0</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>620</x>
+      <y>295</y>
+      <w>480</w>
+      <h>197</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>470.0;10.0;10.0;187.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>850</x>
+      <y>328</y>
+      <w>250</w>
+      <h>164</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>240.0;10.0;10.0;154.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1078</x>
+      <y>340</y>
+      <w>34</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>24.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1195</x>
+      <y>340</y>
+      <w>20</w>
+      <h>140</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;130.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1260</x>
+      <y>295</y>
+      <w>250</w>
+      <h>197</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;240.0;187.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1260</x>
+      <y>328</y>
+      <w>470</w>
+      <h>164</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;.</panel_attributes>
+    <additional_attributes>10.0;10.0;460.0;154.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>900</x>
+      <y>262</y>
+      <w>200</w>
+      <h>53</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=1
+m2=0..*
+r2=history</panel_attributes>
+    <additional_attributes>10.0;43.0;190.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1260</x>
+      <y>262</y>
+      <w>150</w>
+      <h>43</h>
+    </coordinates>
+    <panel_attributes>lt=&lt;&lt;&lt;&lt;-
+m1=1
+m2=1..*
+r2=commands</panel_attributes>
+    <additional_attributes>140.0;33.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>608</x>
+      <y>560</y>
+      <w>134</w>
+      <h>230</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>10.0;10.0;124.0;220.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>780</x>
+      <y>570</y>
+      <w>20</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>990</x>
+      <y>570</y>
+      <w>20</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1290</x>
+      <y>570</y>
+      <w>20</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1474</x>
+      <y>570</y>
+      <w>56</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>46.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1518</x>
+      <y>570</y>
+      <w>224</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=0..*
+m2=1
+r2=receiver</panel_attributes>
+    <additional_attributes>214.0;10.0;10.0;210.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>888</x>
+      <y>120</y>
+      <w>54</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=-&gt;
+m1=1
+m2=1
+r2=invokes</panel_attributes>
+    <additional_attributes>44.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1090</x>
+      <y>120</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+creates Add, Update,
+Remove, Offer, Claim</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1438</x>
+      <y>570</y>
+      <w>224</w>
+      <h>220</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+creates</panel_attributes>
+    <additional_attributes>214.0;210.0;10.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>1545</x>
+      <y>120</y>
+      <w>20</w>
+      <h>150</h>
+    </coordinates>
+    <panel_attributes>lt=.&gt;
+creates, with its
+Add, Update and Remove commands</panel_attributes>
+    <additional_attributes>10.0;10.0;10.0;140.0</additional_attributes>
+  </element>
+  <element>
+    <id>Relation</id>
+    <coordinates>
+      <x>410</x>
+      <y>300</y>
+      <w>60</w>
+      <h>20</h>
+    </coordinates>
+    <panel_attributes>lt=.</panel_attributes>
+    <additional_attributes>10.0;10.0;50.0;10.0</additional_attributes>
+  </element>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>30</x>
+      <y>190</y>
+      <w>1900</w>
+      <h>420</h>
+    </coordinates>
+    <panel_attributes>server.domain.commands
+--
+</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+  <element>
+    <id>Text</id>
+    <coordinates>
+      <x>20</x>
+      <y>10</y>
+      <w>1400</w>
+      <h>40</h>
+    </coordinates>
+    <panel_attributes>*Fridgemate Class Diagram 5: Command Pattern (server.domain.commands)*
+fontsize=18</panel_attributes>
+    <additional_attributes></additional_attributes>
+  </element>
+</diagram>
