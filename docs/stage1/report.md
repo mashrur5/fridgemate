@@ -640,7 +640,7 @@ The instructions say login and change password don't count as features, so these
 
 #### 2.1.1 Class Diagrams
 
-Fridgemate has over 100 classes, so the class diagram is split into seven parts. Diagram 1 shows the overall structure, and Diagrams 2 to 7 each cover one layer. A class from another diagram appears as a small box labeled "see Diagram N." All names match the code exactly, and the source files are in `docs/stage1/diagrams/`.
+Fridgemate has over 100 classes, so the class diagram is split into seven parts. Diagram 1 shows the overall structure, and Diagrams 2 to 7 each cover one layer. A class from another diagram appears as a small box labeled "see Diagram N." All names match the code exactly. The diagrams were drawn in UMLet, and the .uxf source files are in docs/stage1/diagrams/.
 
 ##### Diagram 1: Overview
 
