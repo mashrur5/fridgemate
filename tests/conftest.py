@@ -36,3 +36,27 @@ def make_item(household):
             owner=owner,
         )
     return _make
+
+
+@pytest.fixture
+def repo():
+    from server.infrastructure.persistence import InMemoryItemRepository
+    return InMemoryItemRepository()
+
+
+@pytest.fixture
+def inventory(repo):
+    from server.domain.services import InventoryService
+    return InventoryService(repo, today=lambda: TODAY)
+
+
+@pytest.fixture
+def ctx_alice(alice, household):
+    from server.application.request_context import RequestContext
+    return RequestContext(member=alice, household=household)
+
+
+@pytest.fixture
+def ctx_bob(bob, household):
+    from server.application.request_context import RequestContext
+    return RequestContext(member=bob, household=household)
