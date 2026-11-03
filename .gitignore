@@ -219,3 +219,11 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 .DS_Store
+
+# Stage 2: local secrets (never commit real keys)
+.env.*
+!.env.example
+config.local.json
+
+# Web client
+node_modules/

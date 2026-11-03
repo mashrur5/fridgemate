@@ -1,0 +1,9 @@
+[project]
+name = "fridgemate"
+version = "0.1.0"
+description = "Fridgemate: an AI agent for shared-fridge inventory, recipes and waste-rescue meal plans (EECS 3311)"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
