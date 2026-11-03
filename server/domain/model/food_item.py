@@ -6,6 +6,7 @@ from decimal import Decimal
 from typing import Optional
 from uuid import UUID, uuid4
 
+from server.domain.model.freshness import FreshnessState
 from server.domain.model.location import Location
 from server.domain.model.member import Member
 from server.domain.model.quantity import Quantity
@@ -43,6 +44,29 @@ class FoodItem:
             raise ValueError("quantity must be greater than 0")
         if self.original_amount is None:
             self.original_amount = self.quantity.amount
+        self._state: FreshnessState = FreshnessState.for_dates(self.expiry_date, self.added_on)
+
+    # --- State pattern: FoodItem is the context and delegates to its FreshnessState ---
+
+    def refresh_state(self, today: date) -> None:
+        """Pick the state from the expiry date. Called whenever alerts or recipes need fresh data."""
+        self._state = FreshnessState.for_dates(self.expiry_date, today)
+
+    @property
+    def state(self) -> FreshnessState:
+        return self._state
+
+    def can_use_in_recipe(self) -> bool:
+        return self._state.can_use_in_recipe()
+
+    def can_offer(self) -> bool:
+        return self._state.can_offer()
+
+    def alert_priority(self) -> int:
+        return self._state.alert_priority()
+
+    def freshness_label(self) -> str:
+        return self._state.label()
 
     def is_shared(self) -> bool:
         return self.owner is None
