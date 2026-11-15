@@ -9,7 +9,7 @@ from uuid import UUID
 from server.application.request_context import RequestContext
 from server.domain.model import UNITS, FoodItem, Location, ProposedChange, ProposedChanges, Quantity, Recipe, RecipeIngredient
 from server.domain.services.household_service import member_allows
-from server.domain.services.stock_validator import StockValidator, names_match
+from server.domain.services.stock_validator import StockValidator, names_match, normalize
 from server.domain.services.unit_converter import UnitConverter
 from server.infrastructure.recipes import RecipeSource, RecipeSourceError
 
@@ -207,6 +207,9 @@ class ProposeInventoryChangeTool(Tool):
                 return {"error": "add needs name, amount and unit"}
             change = ProposedChange("add", name, None, amount, unit, location,
                                     "shared" if str(args.get("owner", "me")).lower() == "shared" else "me")
+            # a correction ("make that 12") replaces the earlier add of the same item
+            self.proposal.changes = [c for c in self.proposal.changes
+                                     if not (c.op == "add" and normalize(c.name) == normalize(name))]
             self.proposal.changes.append(change)
             return {"ok": True, "proposed": change.describe()}
         try:

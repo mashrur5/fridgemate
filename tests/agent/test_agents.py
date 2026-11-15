@@ -140,7 +140,7 @@ def test_fridge_command_proposes_validated_changes_and_remembers(stocked, ctx_al
     assert "greater than 0" in llm.calls[3][1][-1].text  # the invalid amount was sent back to the LLM
     r2 = a.handle(ctx_alice, "actually, make that 12")
     assert any("make that 12" not in m.text and "Removing the milk" in m.text for m in llm.calls[6][1])  # memory
-    assert "Add 12 pcs eggs" in [c.describe() for c in r2.proposal.changes]
+    assert [c.describe() for c in r2.proposal.changes] == ["Remove Old Milk", "Add 12 pcs eggs"]  # 6 replaced
     assert a.take_pending(ctx_alice, r2.proposal.id) is r2.proposal
     assert a.take_pending(ctx_alice, r2.proposal.id) is None
 
