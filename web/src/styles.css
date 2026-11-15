@@ -90,3 +90,4 @@ hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
   .filters, .grid4 { grid-template-columns: 1fr 1fr; }
   .table th, .table td { padding: 6px; }
 }
+.code { font-family: ui-monospace, monospace; background: var(--tag); padding: 3px 8px; border-radius: 6px; font-size: 15px; letter-spacing: 1px; }

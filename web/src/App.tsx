@@ -3,9 +3,11 @@ import { api } from "./api";
 import { Me } from "./types";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import InventoryPage from "./pages/InventoryPage";
+import HouseholdPage from "./pages/HouseholdPage";
 
 const PAGES = [
   ["inventory", "Inventory", "F01 F02 F04 F05 F15"],
+  ["household", "Household", "F06"],
 ] as const;
 type PageKey = (typeof PAGES)[number][0];
 
@@ -96,6 +98,7 @@ export default function App() {
         </nav>
         <main className="content">
           {page === "inventory" && <InventoryPage me={me} />}
+          {page === "household" && <HouseholdPage me={me} onChange={loadMe} />}
         </main>
       </div>
     </div>
