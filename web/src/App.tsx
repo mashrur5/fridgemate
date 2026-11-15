@@ -3,6 +3,7 @@ import { api } from "./api";
 import { Me } from "./types";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import InventoryPage from "./pages/InventoryPage";
+import RecipePage from "./pages/RecipePage";
 import ReceiptImportPage from "./pages/ReceiptImportPage";
 import NotificationsPage from "./pages/NotificationsPage";
 import HouseholdPage from "./pages/HouseholdPage";
@@ -12,6 +13,7 @@ const PAGES = [
   ["household", "Household", "F06"],
   ["notifications", "Notifications", "F15"],
   ["receipt", "Receipt", "F03"],
+  ["recipes", "Recipes", "F07 F08 F09"],
 ] as const;
 type PageKey = (typeof PAGES)[number][0];
 
@@ -106,6 +108,7 @@ export default function App() {
         </nav>
         <main className="content">
           {page === "inventory" && <InventoryPage me={me} />}
+          {page === "recipes" && <RecipePage />}
           {page === "receipt" && <ReceiptImportPage me={me} />}
           {page === "notifications" && <NotificationsPage onRead={markRead} />}
           {page === "household" && <HouseholdPage me={me} onChange={loadMe} />}
