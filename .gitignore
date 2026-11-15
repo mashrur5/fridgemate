@@ -227,3 +227,7 @@ config.local.json
 
 # Web client
 node_modules/
+
+# Local database
+*.db
+*.db-journal
