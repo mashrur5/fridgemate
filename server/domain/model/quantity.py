@@ -9,8 +9,14 @@ _FACTORS: dict[str, tuple[str, float]] = {
     "kg": ("mass", 1000.0),
     "ml": ("volume", 1.0),
     "l": ("volume", 1000.0),
+    "tsp": ("volume", 5.0),
+    "tbsp": ("volume", 15.0),
+    "cup": ("volume", 240.0),
+    "oz": ("mass", 28.35),
+    "lb": ("mass", 453.6),
     "pcs": ("count", 1.0),
 }
+UNITS = tuple(_FACTORS)
 
 
 @dataclass(frozen=True)

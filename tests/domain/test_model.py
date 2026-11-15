@@ -22,7 +22,7 @@ def test_quantity_rejects_bad_input():
 
 
 def test_member_allows_respects_restrictions_and_dislikes():
-    m = Member(auth0_id="a", name="A", email="a@x.com",
+    m = Member(account_id="a", name="A", email="a@x.com",
                dietary_restrictions=["pork"], disliked_ingredients=["Cilantro"])
     assert not m.allows("pork belly")
     assert not m.allows("fresh cilantro")

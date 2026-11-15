@@ -6,9 +6,9 @@ from uuid import UUID, uuid4
 
 @dataclass
 class Member:
-    """A person in a household. Each member has their own login (Auth0) and preferences."""
+    """A person in a household. Each member has their own login and preferences."""
 
-    auth0_id: str
+    account_id: str
     name: str
     email: str
     id: UUID = field(default_factory=uuid4)

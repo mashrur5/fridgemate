@@ -15,12 +15,12 @@ def household():
 
 @pytest.fixture
 def alice():
-    return Member(auth0_id="auth0|alice", name="Alice", email="alice@example.com")
+    return Member(account_id="alice", name="Alice", email="alice@example.com")
 
 
 @pytest.fixture
 def bob():
-    return Member(auth0_id="auth0|bob", name="Bob", email="bob@example.com")
+    return Member(account_id="bob", name="Bob", email="bob@example.com")
 
 
 @pytest.fixture
