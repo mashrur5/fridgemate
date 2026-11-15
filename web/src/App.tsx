@@ -3,6 +3,7 @@ import { api } from "./api";
 import { Me } from "./types";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import InventoryPage from "./pages/InventoryPage";
+import ShoppingListPage from "./pages/ShoppingListPage";
 import QuickFinderPage from "./pages/QuickFinderPage";
 import RecipePage from "./pages/RecipePage";
 import ReceiptImportPage from "./pages/ReceiptImportPage";
@@ -16,6 +17,7 @@ const PAGES = [
   ["receipt", "Receipt", "F03"],
   ["recipes", "Recipes", "F07 F08 F09"],
   ["finder", "Quick Finder", "F10"],
+  ["shopping", "Shopping", "F11"],
 ] as const;
 type PageKey = (typeof PAGES)[number][0];
 
@@ -110,6 +112,7 @@ export default function App() {
         </nav>
         <main className="content">
           {page === "inventory" && <InventoryPage me={me} />}
+          {page === "shopping" && <ShoppingListPage />}
           {page === "finder" && <QuickFinderPage />}
           {page === "recipes" && <RecipePage />}
           {page === "receipt" && <ReceiptImportPage me={me} />}
