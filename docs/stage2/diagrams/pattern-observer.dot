@@ -1,0 +1,18 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=BT; labelloc=t; label=<<B>Observer: reacting to inventory changes</B>>;
+  inv [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#fff7e6"><TR><TD><FONT POINT-SIZE="9">«Subject»</FONT></TD></TR><TR><TD><B>InventoryService</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">- observers: list[InventoryObserver]</TD></TR><TR><TD ALIGN="LEFT">+ attach(o) / detach(o)</TD></TR><TR><TD ALIGN="LEFT">+ notify_observers(item, change)</TD></TR><TR><TD ALIGN="LEFT">+ add / update / remove / deduct / claim</TD></TR></TABLE></TD></TR></TABLE>>];
+  obs [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Observer»</FONT></TD></TR><TR><TD><I>InventoryObserver</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ update(item, change)</TD></TR></TABLE></TD></TR></TABLE>>];
+  a [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F05»</FONT></TD></TR><TR><TD><B>ExpiryAlertNotifier</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ get_alerts(ctx)</TD></TR></TABLE></TD></TR></TABLE>>];
+  b [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F11»</FONT></TD></TR><TR><TD><B>ShoppingListService</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">adds low / used-up items</TD></TR></TABLE></TD></TR></TABLE>>];
+  c [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F15»</FONT></TD></TR><TR><TD><B>HouseholdNotifier</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">offer and claim notifications</TD></TR></TABLE></TD></TR></TABLE>>];
+  d [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F14»</FONT></TD></TR><TR><TD><B>CostSplitService</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">records Shared purchases</TD></TR></TABLE></TD></TR></TABLE>>];
+  {rank=same; inv obs}
+  a -> obs [arrowhead=empty, style=dashed];
+  b -> obs [arrowhead=empty, style=dashed];
+  c -> obs [arrowhead=empty, style=dashed];
+  d -> obs [arrowhead=empty, style=dashed];
+  inv -> obs [arrowhead=open, arrowtail=odiamond, dir=both, xlabel=" 0..*"];
+}

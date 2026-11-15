@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=TB; labelloc=t; label=<<B>Adapter and Factory Method: outside services behind one interface</B>>;
+  fac [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#fff7e6"><TR><TD><FONT POINT-SIZE="9">«Factory Method»</FONT></TD></TR><TR><TD><B>LLMClientFactory</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ create_client(): LLMClient</TD></TR></TABLE></TD></TR></TABLE>>];
+  llm [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Target»</FONT></TD></TR><TR><TD><I>LLMClient</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ generate(system, messages,</TD></TR><TR><TD ALIGN="LEFT">    json_mode, images): LLMResponse</TD></TR></TABLE></TD></TR></TABLE>>];
+  gem [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adapter»</FONT></TD></TR><TR><TD><B>GeminiClient</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">- models: list (quota fallback)</TD></TR><TR><TD ALIGN="LEFT">- thinking_level</TD></TR><TR><TD ALIGN="LEFT">+ generate(...)</TD></TR></TABLE></TD></TR></TABLE>>];
+  oll [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adapter»</FONT></TD></TR><TR><TD><B>OllamaClient</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ generate(...)</TD></TR></TABLE></TD></TR></TABLE>>];
+  gapi [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adaptee»</FONT></TD></TR><TR><TD><B>Gemini REST API</B></TD></TR></TABLE>>];
+  oapi [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adaptee»</FONT></TD></TR><TR><TD><B>Ollama /api/chat</B></TD></TR></TABLE>>];
+  rs [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Target»</FONT></TD></TR><TR><TD><I>RecipeSource</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ search_by_ingredient(name, cuisine)</TD></TR><TR><TD ALIGN="LEFT">+ get_recipe(id): Recipe</TD></TR></TABLE></TD></TR></TABLE>>];
+  mdb [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adapter»</FONT></TD></TR><TR><TD><B>MealDBRecipeSource</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ search_by_ingredient(...)</TD></TR><TR><TD ALIGN="LEFT">+ get_recipe(...)</TD></TR></TABLE></TD></TR></TABLE>>];
+  mapi [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Adaptee»</FONT></TD></TR><TR><TD><B>TheMealDB JSON API</B></TD></TR></TABLE>>];
+  agents [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Client»</FONT></TD></TR><TR><TD><B>Agents and LLM strategies</B></TD></TR></TABLE>>];
+  {rank=same; gem oll mdb}
+  gem -> llm [arrowhead=empty, style=dashed];
+  oll -> llm [arrowhead=empty, style=dashed];
+  mdb -> rs [arrowhead=empty, style=dashed];
+  gem -> gapi [style=dashed];
+  oll -> oapi [style=dashed];
+  mdb -> mapi [style=dashed];
+  fac -> gem [style=dashed, xlabel=" creates"];
+  fac -> oll [style=dashed, xlabel=" creates"];
+  agents -> llm [arrowhead=open];
+  agents -> rs [arrowhead=open];
+}

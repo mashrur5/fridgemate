@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=LR; labelloc=t; label=<<B>Strategy: AI first, rules as fallback; fridge or typed ingredients</B>>;
+  ps [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Context (F02)»</FONT></TD></TR><TR><TD><B>PlacementService</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ suggest(name): (Location, reason, source)</TD></TR></TABLE></TD></TR></TABLE>>];
+  pst [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Strategy»</FONT></TD></TR><TR><TD><I>PlacementStrategy</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ choose_location(name)</TD></TR></TABLE></TD></TR></TABLE>>];
+  lps [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>LLMPlacementStrategy</B></TD></TR></TABLE>>];
+  rps [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>RuleBasedPlacementStrategy</B></TD></TR></TABLE>>];
+  es [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Context (F04)»</FONT></TD></TR><TR><TD><B>ExpiryService</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ estimate(name, location, added_on)</TD></TR></TABLE></TD></TR></TABLE>>];
+  est [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Strategy»</FONT></TD></TR><TR><TD><I>ExpiryEstimator</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ estimate_days(name, location)</TD></TR></TABLE></TD></TR></TABLE>>];
+  lee [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>LLMExpiryEstimator</B></TD></TR></TABLE>>];
+  ree [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>RuleBasedExpiryEstimator</B></TD></TR></TABLE>>];
+  ra [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Context (F07/F10)»</FONT></TD></TR><TR><TD><B>RecipeAgent</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ suggest(ctx, request, source)</TD></TR></TABLE></TD></TR></TABLE>>];
+  isrc [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Strategy»</FONT></TD></TR><TR><TD><I>IngredientSource</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ get_items(ctx)</TD></TR></TABLE></TD></TR></TABLE>>];
+  fis [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>FridgeIngredientSource</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">F07</TD></TR></TABLE></TD></TR></TABLE>>];
+  mis [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ManualIngredientSource</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">F10</TD></TR></TABLE></TD></TR></TABLE>>];
+  lps -> pst [arrowhead=empty, style=dashed];
+  rps -> pst [arrowhead=empty, style=dashed];
+  ps -> pst [arrowhead=open, xlabel=" primary, fallback"];
+  lee -> est [arrowhead=empty, style=dashed];
+  ree -> est [arrowhead=empty, style=dashed];
+  es -> est [arrowhead=open, xlabel=" primary, fallback"];
+  fis -> isrc [arrowhead=empty, style=dashed];
+  mis -> isrc [arrowhead=empty, style=dashed];
+  ra -> isrc [arrowhead=open];
+}

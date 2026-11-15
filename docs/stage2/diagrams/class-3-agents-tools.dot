@@ -1,0 +1,30 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=TB; labelloc=t; label=<<B>Agents and tools</B>>;
+  base [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><I>BaseAgent</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ run_tool_loop(ctx, system, messages,</TD></TR><TR><TD ALIGN="LEFT">    registry, trace, max_steps=6): LoopResult</TD></TR><TR><TD ALIGN="LEFT">ask_json(...): schema check + 1 retry (G5)</TD></TR></TABLE></TD></TR></TABLE>>];
+  ra [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F07 F08 F10»</FONT></TD></TR><TR><TD><B>RecipeAgent</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ suggest(ctx, request, source)</TD></TR><TR><TD ALIGN="LEFT">+ build_suggestions(...)</TD></TR></TABLE></TD></TR></TABLE>>];
+  mpa [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F13»</FONT></TD></TR><TR><TD><B>MealPlanAgent</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ plan(ctx, days, meals, minutes)</TD></TR><TR><TD ALIGN="LEFT">+ outdated_meals / replan</TD></TR></TABLE></TD></TR></TABLE>>];
+  fca [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F12»</FONT></TD></TR><TR><TD><B>FridgeCommandAgent</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ handle(ctx, message): CommandReply</TD></TR><TR><TD ALIGN="LEFT">+ take_pending(ctx, id)</TD></TR></TABLE></TD></TR></TABLE>>];
+  rp [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«F03»</FONT></TD></TR><TR><TD><B>ReceiptParser</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ parse_image(bytes, mime)</TD></TR><TR><TD ALIGN="LEFT">+ parse_text(text)</TD></TR></TABLE></TD></TR></TABLE>>];
+  mem [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ConversationMemory</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ history(member_id)</TD></TR><TR><TD ALIGN="LEFT">+ remember(...)</TD></TR></TABLE></TD></TR></TABLE>>];
+  trace [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«G8»</FONT></TD></TR><TR><TD><B>AgentTrace</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ add(kind, detail, tool, args)</TD></TR></TABLE></TD></TR></TABLE>>];
+  reg [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ToolRegistry</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ describe()</TD></TR><TR><TD ALIGN="LEFT">+ run(name, ctx, args)</TD></TR></TABLE></TD></TR></TABLE>>];
+  tool [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><I>Tool</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ run(ctx, args)</TD></TR></TABLE></TD></TR></TABLE>>];
+  t1 [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>GetInventoryTool<BR/>GetExpiringItemsTool<BR/>SearchRecipesTool</B></TD></TR></TABLE>>];
+  t2 [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ConvertUnitsTool<BR/>ValidateRecipeTool (G3)<BR/>ProposeInventoryChangeTool (G4)</B></TD></TR></TABLE>>];
+  llm [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«interface»</FONT></TD></TR><TR><TD><I>LLMClient</I></TD></TR></TABLE>>];
+  ra -> base [arrowhead=empty];
+  mpa -> base [arrowhead=empty];
+  fca -> base [arrowhead=empty];
+  mpa -> ra [arrowhead=open, xlabel=" reuses tools"];
+  fca -> mem [arrowhead=open];
+  base -> trace [style=dashed];
+  base -> reg [style=dashed];
+  reg -> tool [arrowhead=open, arrowtail=odiamond, dir=both];
+  t1 -> tool [arrowhead=empty, style=dashed];
+  t2 -> tool [arrowhead=empty, style=dashed];
+  base -> llm [arrowhead=open];
+  rp -> llm [arrowhead=open];
+}

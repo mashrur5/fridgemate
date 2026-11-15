@@ -1,0 +1,45 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=11, rankdir=TB, nodesep=0.35, ranksep=0.5, splines=ortho, bgcolor=white, pad=0.3];
+  node [shape=plain, fontname="Helvetica", fontsize=10];
+  edge [fontname="Helvetica", fontsize=9, arrowsize=0.8];
+
+  labelloc=t; label=<<B>Fridgemate Stage 2: architecture and Facade</B>>;
+  subgraph cluster_pres { label="Presentation"; style="rounded,dashed"; color="#999999"; fontcolor="#555555";
+    web [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«presentation»</FONT></TD></TR><TR><TD><B>Web GUI (React)</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">11 pages</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">ApiClient</TD></TR></TABLE></TD></TR></TABLE>>];
+    cli [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«presentation»</FONT></TD></TR><TR><TD><B>FridgemateCLI (typer)</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">FridgemateClient</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">TokenStore</TD></TR></TABLE></TD></TR></TABLE>>];
+  }
+  subgraph cluster_api { label="API"; style="rounded,dashed"; color="#999999"; fontcolor="#555555";
+    routers [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«API»</FONT></TD></TR><TR><TD><B>10 FastAPI routers</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">Account, Household, Inventory,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">Receipt, Recipe, MealPlan, Shopping,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">Cost, Command, Notification</TD></TR></TABLE></TD></TR></TABLE>>];
+    tv [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>TokenVerifier</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">__call__(authorization): Session</TD></TR></TABLE></TD></TR></TABLE>>];
+  }
+  subgraph cluster_app { label="Application"; style="rounded,dashed"; color="#999999"; fontcolor="#555555";
+    facade [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#fff7e6"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«Facade»</FONT></TD></TR><TR><TD><B>FridgemateFacade</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">add_item(ctx, ItemInput)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">suggest_recipes(ctx, RecipeRequest)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">find_recipes(ctx, names, req)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">cook(ctx, recipe_id, usages, leftovers)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">chat(ctx, msg) / confirm_changes(ctx, id)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">plan_meals(ctx, days, meals, minutes)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">parse_receipt_image / save_receipt</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">offer_item / claim_item / undo</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">get_costs / mark_paid ...</TD></TR></TABLE></TD></TR></TABLE>>];
+    rc [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>RequestContext</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">member: Member</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">household: Household</TD></TR></TABLE></TD></TR></TABLE>>];
+    container [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>build_facade(config)</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">composition root: wires observers,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">strategies, agents, repositories</TD></TR></TABLE></TD></TR></TABLE>>];
+  }
+  subgraph cluster_dom { label="Domain and Agent"; style="rounded,dashed"; color="#999999"; fontcolor="#555555";
+    services [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>Domain services</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">InventoryService, CookingService,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">ShoppingListService, CostSplitService,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">HouseholdService, AccountService,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">NotificationService, PlacementService,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">ExpiryService, StockValidator</TD></TR></TABLE></TD></TR></TABLE>>];
+    history [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«Command invoker»</FONT></TD></TR><TR><TD><B>CommandHistory</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">run(ctx, cmd)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">undo_last(ctx)</TD></TR></TABLE></TD></TR></TABLE>>];
+    agents [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>Agents</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">RecipeAgent, MealPlanAgent,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">FridgeCommandAgent, ReceiptParser</TD></TR></TABLE></TD></TR></TABLE>>];
+  }
+  subgraph cluster_inf { label="Infrastructure"; style="rounded,dashed"; color="#999999"; fontcolor="#555555";
+    repos [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«interface»</FONT></TD></TR><TR><TD><B>Repository interfaces</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">ItemRepository, MemberRepository,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">HouseholdRepository, AccountRepository,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">ShoppingListRepository, CostRepository,</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">NotificationRepository, MealPlanRepository</TD></TR></TABLE></TD></TR></TABLE>>];
+    sqlite [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>Sqlite*Repository / InMemory*Repository</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">Database (sqlite3, schema.sql)</TD></TR></TABLE></TD></TR></TABLE>>];
+    llm [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«interface»</FONT></TD></TR><TR><TD><B>LLMClient</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">generate(system, messages, json_mode, images)</TD></TR></TABLE></TD></TR></TABLE>>];
+    rsrc [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD BORDER="0"><FONT POINT-SIZE="8">«interface»</FONT></TD></TR><TR><TD><B>RecipeSource</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT" BORDER="0">search_by_ingredient(name, cuisine)</TD></TR><TR><TD ALIGN="LEFT" BORDER="0">get_recipe(id)</TD></TR></TABLE></TD></TR></TABLE>>];
+  }
+  web -> routers [label="HTTPS JSON + bearer token", style=dashed];
+  cli -> routers [label="HTTPS JSON + bearer token", style=dashed];
+  routers -> tv [style=dashed, label="uses"];
+  routers -> facade;
+  tv -> rc [style=dashed, label="creates"];
+  facade -> services;
+  facade -> history;
+  facade -> agents;
+  container -> facade [style=dashed, label="creates"];
+  services -> repos;
+  agents -> llm;
+  agents -> rsrc;
+  agents -> services [label="tools call services (G1)"];
+  sqlite -> repos [arrowhead=empty, style=dashed, label="implements"];
+}

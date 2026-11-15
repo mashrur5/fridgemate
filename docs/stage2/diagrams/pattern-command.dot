@@ -1,0 +1,27 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=LR; labelloc=t; label=<<B>Command: undoable inventory changes</B>>;
+  fac [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Client»</FONT></TD></TR><TR><TD><B>FridgemateFacade</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ add_item / update_item / remove_item</TD></TR><TR><TD ALIGN="LEFT">+ cook / offer_item / claim_item</TD></TR><TR><TD ALIGN="LEFT">+ confirm_changes / undo</TD></TR></TABLE></TD></TR></TABLE>>];
+  hist [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Invoker»</FONT></TD></TR><TR><TD><B>CommandHistory</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">- history: dict[member_id, list]</TD></TR><TR><TD ALIGN="LEFT">+ run(ctx, command)</TD></TR><TR><TD ALIGN="LEFT">+ undo_last(ctx): bool</TD></TR></TABLE></TD></TR></TABLE>>];
+  cmd [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«Command»</FONT></TD></TR><TR><TD><I>InventoryCommand</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ execute()</TD></TR><TR><TD ALIGN="LEFT">+ undo()</TD></TR><TR><TD ALIGN="LEFT">+ undoable(): bool</TD></TR></TABLE></TD></TR></TABLE>>];
+  a [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>AddItemCommand</B></TD></TR></TABLE>>];
+  b [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>UpdateItemCommand</B></TD></TR></TABLE>>];
+  c [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>RemoveItemCommand</B></TD></TR></TABLE>>];
+  d [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>OfferItemCommand</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">undo = withdraw offer</TD></TR></TABLE></TD></TR></TABLE>>];
+  e [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ClaimItemCommand</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">undoable() = False</TD></TR></TABLE></TD></TR></TABLE>>];
+  f [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>CookRecipeCommand</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">deducts every ingredient,</TD></TR><TR><TD ALIGN="LEFT">adds leftovers; one undo</TD></TR></TABLE></TD></TR></TABLE>>];
+  inv [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#fff7e6"><TR><TD><FONT POINT-SIZE="9">«Receiver»</FONT></TD></TR><TR><TD><B>InventoryService</B></TD></TR></TABLE>>];
+  a -> cmd [arrowhead=empty, style=dashed];
+  b -> cmd [arrowhead=empty, style=dashed];
+  c -> cmd [arrowhead=empty, style=dashed];
+  d -> cmd [arrowhead=empty, style=dashed];
+  e -> cmd [arrowhead=empty, style=dashed];
+  f -> cmd [arrowhead=empty, style=dashed];
+  hist -> cmd [arrowhead=open, arrowtail=odiamond, dir=both, xlabel=" 0..*"];
+  fac -> hist [style=dashed, xlabel=" run"];
+  a -> inv [style=dashed];
+  f -> inv [style=dashed];
+  c -> inv [style=dashed];
+}

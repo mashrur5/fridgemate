@@ -1,0 +1,16 @@
+digraph G {
+  graph [fontname="Helvetica", fontsize=12, nodesep=0.4, ranksep=0.55, splines=ortho, bgcolor=white, pad=0.25];
+  node [shape=plain, fontname="Helvetica", fontsize=11];
+  edge [fontname="Helvetica", fontsize=10, arrowsize=0.9];
+  rankdir=BT; labelloc=t; label=<<B>State: FoodItem freshness</B>>;
+  item [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><FONT POINT-SIZE="9">«Context»</FONT></TD></TR><TR><TD><B>FoodItem</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">- _state: FreshnessState</TD></TR><TR><TD ALIGN="LEFT">+ refresh_state(today)</TD></TR><TR><TD ALIGN="LEFT">+ can_use_in_recipe(): bool</TD></TR><TR><TD ALIGN="LEFT">+ can_offer(): bool</TD></TR><TR><TD ALIGN="LEFT">+ alert_priority(): int</TD></TR><TR><TD ALIGN="LEFT">+ freshness_label(): str</TD></TR></TABLE></TD></TR></TABLE>>];
+  fs [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#eef4ff"><TR><TD><FONT POINT-SIZE="9">«State»</FONT></TD></TR><TR><TD><I>FreshnessState</I></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">+ can_use_in_recipe()</TD></TR><TR><TD ALIGN="LEFT">+ can_offer()</TD></TR><TR><TD ALIGN="LEFT">+ alert_priority()</TD></TR><TR><TD ALIGN="LEFT">+ label()</TD></TR><TR><TD ALIGN="LEFT">+ for_dates(expiry, today) {static}</TD></TR></TABLE></TD></TR></TABLE>>];
+  a [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>FreshState</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">recipe: yes, offer: no</TD></TR></TABLE></TD></TR></TABLE>>];
+  b [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ExpiringSoonState</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">recipe: yes, offer: yes</TD></TR></TABLE></TD></TR></TABLE>>];
+  c [label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4" BGCOLOR="#ffffff"><TR><TD><B>ExpiredState</B></TD></TR><TR><TD BORDER="1" SIDES="T" ALIGN="LEFT"><TABLE BORDER="0" CELLSPACING="0" CELLPADDING="1"><TR><TD ALIGN="LEFT">recipe: no, offer: no</TD></TR></TABLE></TD></TR></TABLE>>];
+  {rank=same; item fs}
+  a -> fs [arrowhead=empty];
+  b -> fs [arrowhead=empty];
+  c -> fs [arrowhead=empty];
+  item -> fs [arrowhead=open, arrowtail=diamond, dir=both, xlabel=" 1"];
+}
