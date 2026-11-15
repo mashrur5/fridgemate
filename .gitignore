@@ -231,3 +231,6 @@ node_modules/
 # Local database
 *.db
 *.db-journal
+
+# Web build output
+web/dist/
