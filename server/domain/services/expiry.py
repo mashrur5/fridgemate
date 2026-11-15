@@ -61,10 +61,16 @@ class ExpiryService:
 
     def estimate_expiry(self, item_name: str, location: Location, added_on: date) -> date:
         """The estimated expiry date. Items using it are marked expiry_estimated=True by the caller."""
+        return self.estimate(item_name, location, added_on)[0]
+
+    def estimate(self, item_name: str, location: Location, added_on: date) -> tuple[date, str]:
+        """The estimated date and where it came from ("ai" or "rules")."""
         try:
             days = self.primary.estimate_days(item_name, location)
             if days <= 0:
                 raise ValueError("estimate must be positive")
+            source = "ai"
         except Exception:
             days = self.fallback.estimate_days(item_name, location)
-        return added_on + timedelta(days=days)
+            source = "rules"
+        return added_on + timedelta(days=days), source

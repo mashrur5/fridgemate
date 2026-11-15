@@ -61,7 +61,14 @@ class PlacementService:
         self.fallback = fallback
 
     def suggest_location(self, item_name: str) -> tuple[Location, str]:
+        location, reason, _ = self.suggest(item_name)
+        return location, reason
+
+    def suggest(self, item_name: str) -> tuple[Location, str, str]:
+        """Location, reason, and where it came from ("ai" or "rules")."""
         try:
-            return self.primary.choose_location(item_name)
+            location, reason = self.primary.choose_location(item_name)
+            return location, reason, "ai"
         except Exception:
-            return self.fallback.choose_location(item_name)
+            location, reason = self.fallback.choose_location(item_name)
+            return location, reason, "rules"

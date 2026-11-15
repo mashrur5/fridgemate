@@ -51,7 +51,7 @@ class StockValidator:
         self.converter = converter or UnitConverter()
 
     def check(self, recipe: Recipe, items: list[FoodItem], scale: float = 1.0,
-              available: Optional[dict] = None) -> CheckResult:
+              available: Optional[dict] = None, ignore_amounts: bool = False) -> CheckResult:
         """Mark every ingredient as have / short / missing / check amount.
 
         Only items that can be used in a recipe (not expired) are considered. `available` maps
@@ -71,6 +71,9 @@ class StockValidator:
             matches.sort(key=lambda i: i.expiry_date)  # use the most urgent item first
             first = matches[0]
             expiring = first.alert_priority() == 1 or first.is_offered
+            if ignore_amounts:  # F10: typed ingredients have no amounts, so a name match is enough
+                result.checks.append(IngredientCheck(ing, "have", str(first.id), first.name, expiring))
+                continue
             if ing.quantity is None:
                 result.checks.append(IngredientCheck(ing, "check amount", str(first.id), first.name, expiring))
                 continue
