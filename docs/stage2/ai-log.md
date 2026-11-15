@@ -1,12 +1,12 @@
 # AI tools and collaboration log (Stage 2)
 
-This log feeds section 5 of the Stage 2 report. Values marked **TODO** must be filled in by the student from their own account pages.
+This log feeds section 5 of the Stage 2 report. Token totals come from the local Claude Code session logs; the cost is the Claude Pro plan fee.
 
 ## 1. Development tools
 
 | Tool or platform | Model | Used for | Total tokens | Money cost |
 |---|---|---|---|---|
-| Claude Code (VS Code extension) | Claude Opus 5.5 (`claude-opus-5-5`) | Domain model and services, commands, agents and tools, SQLite repositories, FastAPI routers, typer CLI, React pages, pytest suite, README, design-change log | **TODO** (from the Claude usage page) | **TODO** (from the plan or billing page) |
+| Claude Code (VS Code extension) | Claude Opus 5.5 (`claude-opus-5-5`) | Domain model and services, commands, agents and tools, SQLite repositories, FastAPI routers, typer CLI, React pages, pytest suite, README, design-change log | About 60 million (54.9M on macOS + 5.0M on Windows, from the Claude Code session logs; mostly cached context) | Claude Pro subscription, CA$31.64 per month (flat fee, no per-token charge) |
 | *(add any other tool used, e.g. ChatGPT for the Stage 1 diagrams)* | | | | |
 
 ## 2. AI used inside the application (runtime)
