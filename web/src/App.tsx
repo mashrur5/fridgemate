@@ -3,11 +3,13 @@ import { api } from "./api";
 import { Me } from "./types";
 import ProfileSetupPage from "./pages/ProfileSetupPage";
 import InventoryPage from "./pages/InventoryPage";
+import NotificationsPage from "./pages/NotificationsPage";
 import HouseholdPage from "./pages/HouseholdPage";
 
 const PAGES = [
   ["inventory", "Inventory", "F01 F02 F04 F05 F15"],
   ["household", "Household", "F06"],
+  ["notifications", "Notifications", "F15"],
 ] as const;
 type PageKey = (typeof PAGES)[number][0];
 
@@ -55,6 +57,8 @@ export default function App() {
     return () => clearInterval(id);
   }, [me?.household, page]);
 
+  const markRead = useCallback(() => setUnread(0), []);
+
   const go = (p: PageKey) => {
     window.location.hash = p;
     setPage(p);
@@ -81,7 +85,9 @@ export default function App() {
         <span className="brand">🧊 Fridgemate</span>
         <span className="muted small hide-sm">{me.household.name}</span>
         <span className="spacer" />
-        <span title="Unread notifications">🔔{unread > 0 && <span className="badge">{unread}</span>}</span>
+        <button className="link" onClick={() => go("notifications")} title="Notifications">
+          🔔{unread > 0 && <span className="badge">{unread}</span>}
+        </button>
         <span className="small hide-sm">{me.member.name}</span>
         <button className="link small" onClick={logout}>Log out</button>
       </header>
@@ -98,6 +104,7 @@ export default function App() {
         </nav>
         <main className="content">
           {page === "inventory" && <InventoryPage me={me} />}
+          {page === "notifications" && <NotificationsPage onRead={markRead} />}
           {page === "household" && <HouseholdPage me={me} onChange={loadMe} />}
         </main>
       </div>
