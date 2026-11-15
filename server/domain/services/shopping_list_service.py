@@ -42,12 +42,16 @@ class ShoppingListService(InventoryObserver):
     # --- Observer: react to inventory changes ---
 
     def update(self, item: FoodItem, change: str) -> None:
-        low = change == "deducted" and item.is_low()
-        if low or change == "used_up":
-            reason = "used up" if change == "used_up" else "running low"
-            owner_id = None if item.is_shared() else item.owner.id
-            self._add(item.household_id, owner_id, item.name, Quantity(item.original_amount, item.quantity.unit),
-                      reason)
+        low = change in ("deducted", "updated") and item.is_low()
+        if not (low or change == "used_up"):
+            return
+        owner_id = None if item.is_shared() else item.owner.id
+        key = normalize(item.name)
+        if any(not l.checked and l.member_id == owner_id and normalize(l.name) == key and
+               ("running low" in l.reasons or "used up" in l.reasons) for l in self.repo.find_by_household(item.household_id)):
+            return  # already on the list because of stock, don't add it again on every change
+        reason = "used up" if change == "used_up" else "running low"
+        self._add(item.household_id, owner_id, item.name, Quantity(item.original_amount, item.quantity.unit), reason)
 
     # --- user actions ---
 
