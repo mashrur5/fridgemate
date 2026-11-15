@@ -58,7 +58,7 @@ Open `.env` and replace `YOUR_LOCAL_API_KEY_HERE` with your Gemini key. The `.en
 |---|---|
 | `LLM_PROVIDER` | `gemini` (default), `ollama` (local model) or `none` (AI off) |
 | `GEMINI_API_KEY` | your key |
-| `GEMINI_MODEL` | default `gemini-2.5-flash` |
+| `GEMINI_MODEL` | default `gemini-3.5-flash` (`GEMINI_THINKING=low` keeps answers fast) |
 | `DATABASE_PATH` | SQLite file, created automatically (default `fridgemate.db`) |
 
 ## 4. Run

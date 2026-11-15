@@ -18,7 +18,8 @@ class LLMClientFactory:
         if provider == "gemini":
             if not self.config.gemini_api_key:
                 return UnavailableLLMClient("AI is not set up: add GEMINI_API_KEY to your .env file")
-            return GeminiClient(self.config.gemini_api_key, self.config.gemini_model)
+            return GeminiClient(self.config.gemini_api_key, self.config.gemini_model,
+                                thinking_level=self.config.gemini_thinking)
         if provider == "none":
             return UnavailableLLMClient("AI is turned off (LLM_PROVIDER=none)")
         raise ValueError(f"unknown LLM_PROVIDER: {provider}")

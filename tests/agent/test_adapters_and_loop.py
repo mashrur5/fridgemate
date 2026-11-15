@@ -29,11 +29,13 @@ def test_gemini_adapter_builds_request_and_reads_answer():
         return httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": '{"a": 1}'}]}}],
                                          "usageMetadata": {"promptTokenCount": 7, "candidatesTokenCount": 3}})
 
-    client = GeminiClient("k", "gemini-test", http=httpx.Client(transport=httpx.MockTransport(handler)))
+    client = GeminiClient("k", "gemini-test", http=httpx.Client(transport=httpx.MockTransport(handler)),
+                          thinking_level="low")
     r = client.generate("sys", [Message("user", "hi")])
     assert r.text == '{"a": 1}' and client.usage.input_tokens == 7
     assert "gemini-test:generateContent" in seen["url"] and seen["key"] == "k"
     assert seen["body"]["generationConfig"]["responseMimeType"] == "application/json"
+    assert seen["body"]["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "low"}
 
 
 def test_gemini_rate_limit_becomes_unavailable_after_retries():

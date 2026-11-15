@@ -15,12 +15,13 @@ class GeminiClient(LLMClient):
     name = "gemini"
 
     def __init__(self, api_key: str, model: str, http: httpx.Client | None = None,
-                 retry: RetryPolicy | None = None, temperature: float = 0.3) -> None:
+                 retry: RetryPolicy | None = None, temperature: float = 0.3, thinking_level: str = "") -> None:
         self.api_key = api_key
         self.model = model
         self.http = http or httpx.Client(timeout=60)
         self.retry = retry or RetryPolicy()
         self.temperature = temperature
+        self.thinking_level = thinking_level  # "low" keeps answers fast; "" leaves the model's default
         self.usage = UsageMeter()
 
     def generate(self, system: str, messages: list[Message], json_mode: bool = True,
@@ -33,7 +34,9 @@ class GeminiClient(LLMClient):
             "systemInstruction": {"parts": [{"text": system}]},
             "contents": contents,
             "generationConfig": {"temperature": self.temperature,
-                                 **({"responseMimeType": "application/json"} if json_mode else {})},
+                                 **({"responseMimeType": "application/json"} if json_mode else {}),
+                                 **({"thinkingConfig": {"thinkingLevel": self.thinking_level}}
+                                    if self.thinking_level else {})},
         }
 
         def call() -> httpx.Response:
@@ -54,7 +57,7 @@ class GeminiClient(LLMClient):
         data = r.json()
         try:
             parts = data["candidates"][0]["content"]["parts"]
-            text = "".join(p.get("text", "") for p in parts)
+            text = "".join(p.get("text", "") for p in parts if not p.get("thought"))
         except (KeyError, IndexError) as e:
             raise LLMUnavailableError("Gemini returned no answer (it may have been blocked)") from e
         usage = data.get("usageMetadata", {})

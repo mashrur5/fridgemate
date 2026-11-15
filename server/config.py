@@ -24,7 +24,8 @@ def load_dotenv(path: Path) -> None:
 class Config:
     llm_provider: str = "gemini"
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash"
+    gemini_thinking: str = "low"
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.1"
     database_path: str = str(ROOT / "fridgemate.db")
@@ -39,6 +40,7 @@ class Config:
             llm_provider=os.getenv("LLM_PROVIDER", defaults.llm_provider).strip().lower(),
             gemini_api_key=os.getenv("GEMINI_API_KEY", "").strip(),
             gemini_model=os.getenv("GEMINI_MODEL", defaults.gemini_model).strip(),
+            gemini_thinking=os.getenv("GEMINI_THINKING", defaults.gemini_thinking).strip().lower(),
             ollama_url=os.getenv("OLLAMA_URL", defaults.ollama_url).strip(),
             ollama_model=os.getenv("OLLAMA_MODEL", defaults.ollama_model).strip(),
             database_path=os.getenv("DATABASE_PATH", defaults.database_path).strip(),
