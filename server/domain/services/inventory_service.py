@@ -86,7 +86,7 @@ class InventoryService:
         left = item.quantity.amount - used
         if left <= 1e-9:
             self.items.delete(item_id)
-            self.notify_observers(item, "removed")
+            self.notify_observers(item, "used_up")
             return item
         item.quantity = Quantity(left, item.quantity.unit)
         self.items.save(item)
@@ -121,9 +121,12 @@ class InventoryService:
         item = self.get_item(ctx, item_id)
         if item.offered_by is not None and item.offered_by.id == ctx.member.id:
             raise InvalidOperationError("you cannot claim your own offer")
+        offerer = item.offered_by
         if not self.items.claim_if_unclaimed(item_id, ctx.member):
             return False
-        self.notify_observers(self.items.find_by_id(item_id), "claimed")
+        claimed = self.items.find_by_id(item_id)
+        claimed.claimed_from = offerer  # not stored; lets HouseholdNotifier tell the offerer
+        self.notify_observers(claimed, "claimed")
         return True
 
     # --- rules ---

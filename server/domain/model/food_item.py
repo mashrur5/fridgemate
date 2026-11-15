@@ -36,6 +36,7 @@ class FoodItem:
     is_offered: bool = False
     offered_by: Optional[Member] = None
     id: UUID = field(default_factory=uuid4)
+    claimed_from: Optional[Member] = field(default=None, compare=False, repr=False)
 
     def __post_init__(self) -> None:
         if not self.name.strip():

@@ -28,6 +28,7 @@ DEFAULT_SHELF_LIFE: dict[str, tuple[int, int, int]] = {
     "banana": (7, 60, 5),
     "onion": (30, 240, 30),
     "potato": (21, 300, 30),
+    "leftover": (4, 60, 1),
 }
 DEFAULT_DAYS = {Location.FRIDGE: 7, Location.FREEZER: 90, Location.PANTRY: 30}
 _INDEX = {Location.FRIDGE: 0, Location.FREEZER: 1, Location.PANTRY: 2}

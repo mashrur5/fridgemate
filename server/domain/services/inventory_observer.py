@@ -14,4 +14,4 @@ class InventoryObserver(ABC):
 
     @abstractmethod
     def update(self, item: FoodItem, change: str) -> None:
-        """change is one of: added, updated, removed, deducted, offered, claimed."""
+        """change is one of: added, updated, removed, deducted, used_up, offered, claimed."""

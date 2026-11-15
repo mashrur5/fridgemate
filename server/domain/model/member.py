@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Optional
 from uuid import UUID, uuid4
 
 
@@ -12,6 +13,7 @@ class Member:
     name: str
     email: str
     id: UUID = field(default_factory=uuid4)
+    household_id: Optional[UUID] = None
     dietary_restrictions: list[str] = field(default_factory=list)
     disliked_ingredients: list[str] = field(default_factory=list)
 
