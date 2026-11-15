@@ -102,6 +102,7 @@ class InventoryService:
             raise InvalidOperationError("items can be offered within 3 days of expiry")
         item.is_offered = True
         item.offered_by = ctx.member
+        item.offer_note = note.strip()[:120]
         self.items.save(item)
         self.notify_observers(item, "offered")
         return item

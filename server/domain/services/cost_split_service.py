@@ -28,7 +28,7 @@ class CostSplitService(InventoryObserver):
     def update(self, item: FoodItem, change: str) -> None:
         if change == "added" and item.is_shared() and item.price and item.payer is not None:
             self.costs.delete_purchase_for_item(item.id)
-            self.costs.save_purchase(Purchase(item.household_id, item.id, item.name, Decimal(item.price),
+            self.costs.save_purchase(Purchase(item.household_id, item.id, item.name, Decimal(item.price).quantize(CENT),
                                               item.payer.id, item.added_on))
         elif change == "removed" and abs(item.quantity.amount - item.original_amount) < 1e-9:
             # removed before any of it was used: an undone add or a mistake, so it was never really bought

@@ -45,7 +45,8 @@ class HouseholdNotifier(InventoryObserver):
             for m in self.members.find_by_household(item.household_id):
                 if m.id != item.offered_by.id:
                     self.notifications.notify(
-                        m.id, f"{item.offered_by.name} is offering {item.name} (expires {when}). First to claim gets it.",
+                        m.id, f"{item.offered_by.name} is offering {item.name} (expires {when})"
+                        + (f': "{item.offer_note}"' if item.offer_note else "") + ". First to claim gets it.",
                         item.id, "offer")
         elif change == "claimed":
             self.notifications.close_offer(item.id)
