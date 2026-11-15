@@ -33,7 +33,10 @@ TASK = """How to work:
 1. Call get_expiring_items (and get_inventory if you need more) to see what can be used.
 2. Call search_recipes with the most urgent ingredients, ONE ingredient per search. Use the cuisine if one was chosen.
 3. Call validate_recipe on the most promising recipes to see what is missing.
-4. If fewer than 3 good recipes exist, write your own using mainly the available items (put them in "generated").
+4. Prefer database recipes: put every validated database recipe that uses at least one expiring item in "recipes",
+   even if a few ingredients are missing (missing items can go on the shopping list).
+   Only if that gives fewer than 3 recipes, write your own using mainly the available items (put them in "generated")
+   so that there are 3 to 5 recipes in total.
 Estimate cooking minutes and meal weight (light, medium, heavy) yourself, since the database has neither.
 Skip recipes with ingredients the user must avoid. For "Let AI decide" options, choose and say what you chose.
 For missing ingredients you may suggest a substitute, but only an item from the user's inventory."""
