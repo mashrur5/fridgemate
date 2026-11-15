@@ -27,6 +27,10 @@ PIECE_GRAMS: dict[str, float] = {
     "egg": 50, "onion": 150, "garlic": 5, "potato": 200, "tomato": 120, "banana": 120,
     "carrot": 70, "apple": 180, "lemon": 100, "lime": 60, "pepper": 150, "chicken breast": 200,
     "chicken thigh": 120, "bread": 30, "avocado": 170, "cucumber": 300, "zucchini": 200,
+    # one bunch / head, as TheMealDB writes "1 bunch spinach"
+    "spinach": 250, "lettuce": 400, "cabbage": 900, "broccoli": 300, "cauliflower": 600, "kale": 200,
+    "parsley": 50, "coriander": 50, "basil": 30, "mint": 30, "celery": 40, "green onion": 15,
+    "mushroom": 20, "shallot": 30, "ginger": 30, "chilli": 15, "chili": 15,
 }
 # grams per millilitre, for volume <-> mass
 DENSITY: dict[str, float] = {

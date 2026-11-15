@@ -63,7 +63,7 @@ export default function MealPlanPage() {
                       <b>{m.suggestion.recipe.name}</b> {m.suggestion.recipe.ai_generated && <span className="tag ai">AI-generated</span>}
                       {m.outdated && <span className="tag bad">no longer fits</span>}
                       <div className="small">
-                        Uses: {m.suggestion.checks.filter((c) => c.status === "have" && c.item_name !== "kitchen staple")
+                        Uses: {m.suggestion.checks.filter((c) => (c.status === "have" || c.status === "check amount") && c.item_name && c.item_name !== "kitchen staple")
                           .map((c) => <span key={c.ingredient} className={c.expiring ? "tag warn" : "tag"}>{c.item_name}</span>)}
                       </div>
                       {m.suggestion.missing_count > 0 && (

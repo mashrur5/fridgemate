@@ -32,6 +32,7 @@ def test_convert_same_kind_and_ingredient_specific(conv):
     assert conv.convert(Quantity(2, "pcs"), "g", "egg").amount == pytest.approx(100)
     assert conv.convert(Quantity(100, "ml"), "g", "milk").amount == pytest.approx(103)
     assert conv.convert(Quantity(2, "pcs"), "g", "mystery") is None
+    assert conv.convert(Quantity(1, "pcs"), "g", "spinach").amount == 250  # "1 bunch spinach"
 
 
 def test_names_match():

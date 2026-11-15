@@ -545,7 +545,8 @@ def show_plan(p: Optional[dict]) -> None:
         flag = " [red](outdated)[/red]" if m.get("outdated") else ""
         if s:
             ai = " [magenta](AI-generated)[/magenta]" if s["recipe"]["ai_generated"] else ""
-            uses = ", ".join(c["item_name"] for c in s["checks"] if c["status"] == "have" and c["item_name"] != "kitchen staple")
+            uses = ", ".join(c["item_name"] for c in s["checks"]
+                             if c["status"] in ("have", "check amount") and c["item_name"] not in (None, "kitchen staple"))
             missing = ", ".join(c["ingredient"] for c in s["checks"] if c["status"] in ("missing", "short"))
             console.print(f"[bold]{day}[/bold] meal {m['slot']}: {s['recipe']['name']}{ai}{flag}  [dim]id {s['recipe']['id']}[/dim]")
             console.print(f"    uses: {uses}" + (f" | missing: {missing}" if missing else ""))
