@@ -38,13 +38,38 @@ def test_gemini_adapter_builds_request_and_reads_answer():
     assert seen["body"]["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "low"}
 
 
-def test_gemini_rate_limit_becomes_unavailable_after_retries():
+def test_gemini_overload_is_retried_then_unavailable():
     calls = []
     client = GeminiClient("k", "m", http=httpx.Client(transport=httpx.MockTransport(
-        lambda r: calls.append(1) or httpx.Response(429))), retry=RetryPolicy(3, sleep=lambda s: None))
+        lambda r: calls.append(1) or httpx.Response(503))), retry=RetryPolicy(3, sleep=lambda s: None))
     with pytest.raises(LLMUnavailableError):
         client.generate("s", [Message("user", "x")])
     assert len(calls) == 3
+
+
+def test_gemini_all_quotas_used_up():
+    client = GeminiClient("k", "m", http=httpx.Client(transport=httpx.MockTransport(lambda r: httpx.Response(429))),
+                          fallback_models=["n"])
+    with pytest.raises(LLMUnavailableError, match="quota"):
+        client.generate("s", [Message("user", "x")])
+
+
+def test_gemini_moves_to_fallback_model_when_quota_is_used_up():
+    calls = []
+
+    def handler(request: httpx.Request):
+        model = request.url.path.split("/")[-1].split(":")[0]
+        calls.append(model)
+        if model == "main":
+            return httpx.Response(429, json={"error": {"message": "quota"}})
+        return httpx.Response(200, json={"candidates": [{"content": {"parts": [{"text": "{}"}]}}]})
+
+    client = GeminiClient("k", "main", http=httpx.Client(transport=httpx.MockTransport(handler)),
+                          fallback_models=["backup"], retry=RetryPolicy(3, sleep=lambda s: None), clock=lambda: 0.0)
+    client.generate("s", [Message("user", "x")])
+    client.generate("s", [Message("user", "y")])
+    assert calls == ["main", "backup", "backup"]  # no retries on 429, and the used-up model is skipped
+    assert client.last_model == "backup"
 
 
 def test_factory_picks_client_from_config():
