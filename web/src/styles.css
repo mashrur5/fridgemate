@@ -93,3 +93,4 @@ hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
 .code { font-family: ui-monospace, monospace; background: var(--tag); padding: 3px 8px; border-radius: 6px; font-size: 15px; letter-spacing: 1px; }
 .note { display: flex; gap: 12px; margin-bottom: 8px; padding: 12px; }
 .note.unread { border-left: 4px solid var(--accent); }
+.draft { border-bottom: 1px solid var(--border); padding: 6px 0 10px; }
