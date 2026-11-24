@@ -1,0 +1,17 @@
+# Example tasks for the standalone agent CLI:
+#   fridgemate-agent --llm gemini --input examples/task.txt
+# One task per line. Lines starting with # are comments.
+
+add Milk 1 l
+add Spinach 200 g
+add Chicken breast 500 g
+I bought 6 eggs and used half of the spinach
+list
+alerts
+recipes 30
+
+# More tasks you can try (each one uses more AI calls):
+# receipt ../docs/stage2/demo/receipt.txt
+# find chicken, rice, onion
+# plan 3
+# shopping

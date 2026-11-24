@@ -6,7 +6,7 @@ EECS 3311 Software Design course project, York University, Fall 2026.
 Author: Mohammad Mashrur Mahtab Mahi.
 
 - **Web GUI:** React + TypeScript (Vite)
-- **CLI:** Python `typer`
+- **CLI:** Python `typer` (`fridgemate`, talks to the server) and a standalone agent CLI (`fridgemate-agent`, no server needed)
 - **Server:** Python 3.12 + FastAPI, SQLite database
 - **AI:** Google Gemini Flash (Ollama as a local backup), called only from the server
 - **Recipes:** TheMealDB (free test key)
@@ -109,7 +109,101 @@ fridgemate notifications
 To try two users on one computer with the CLI, give each user their own token folder:
 `FRIDGEMATE_HOME=~/.fridgemate-bob fridgemate login`.
 
-## 6. Tests
+## 6. Standalone agent CLI (no server)
+
+`fridgemate-agent` runs the agent directly from a terminal. It needs no server and no login: it reads tasks from a file, from standard input or from the command line, runs each one, and prints the result. It uses the same Facade, agents and database code as the server, so the results match the GUI.
+
+```bash
+fridgemate-agent --llm gemini --input examples/task.txt     # tasks from a file
+echo "I bought 6 eggs" | fridgemate-agent                   # tasks from standard input
+fridgemate-agent --input - < examples/task.txt              # same, with "-" for standard input
+fridgemate-agent "add Milk 1 l" "recipes 30"                # tasks as arguments
+python -m cli.agent_cli --help                              # same program without the installed command
+```
+
+**Options**
+
+| Option | Meaning |
+|---|---|
+| `-i FILE`, `--input FILE` | File with one task per line. `-` reads standard input. Without `--input`, the tasks come from the arguments, or from standard input when it is piped. |
+| `-o FILE`, `--output FILE` | Also write the results to this file. |
+| `--llm gemini\|ollama\|none` | LLM to use. Default: `LLM_PROVIDER` in `.env`. `none` turns AI off (rule fallbacks only). |
+| `--model NAME` | Model for the chosen LLM, e.g. `gemini-3.5-flash`. Default: from `.env`. |
+| `--db PATH` | SQLite database file. Default: `DATABASE_PATH` in `.env`. |
+| `--memory` | Use a fresh in-memory database; nothing is saved. |
+| `--dry-run` | Show what the agent would change without changing anything. |
+| `--trace` | Print every agent step (tool calls and final answer). |
+| `-h`, `--help` | Show all options and task keywords. |
+
+The exit code is 0 when every task worked and 1 when any task failed. A bad task prints `Error: ...` and the next task still runs.
+
+**Task lines** (blank lines and lines starting with `#` are skipped)
+
+| Task | Feature |
+|---|---|
+| `add <name> <amount> <unit>` | Add an item; AI picks the location and expiry (F01, F02, F04) |
+| `list` | Show the inventory (F01) |
+| `alerts` | Items that expire soon or have expired (F05) |
+| `receipt <file>` | Read a receipt photo or `.txt` file and add its items (F03) |
+| `recipes [minutes]` | Recipe agent on what is in the fridge (F07, F08) |
+| `find <a, b, c>` | Recipes for the listed ingredients (F10) |
+| `plan [days]` | Waste-rescue meal plan for 1 to 7 days (F13) |
+| `shopping` | Show the shopping list (F11) |
+| anything else | Natural-language fridge agent, e.g. `I used 2 eggs` (F12) |
+
+The standalone CLI uses one local profile ("Local user", household "My fridge"), created on the first run.
+
+**Working example.** [`examples/task.txt`](examples/task.txt):
+
+```text
+add Milk 1 l
+add Spinach 200 g
+add Chicken breast 500 g
+I bought 6 eggs and used half of the spinach
+list
+alerts
+recipes 30
+```
+
+```bash
+fridgemate-agent --llm gemini --memory --input examples/task.txt
+```
+
+Output from a real run (shortened):
+
+```text
+=== Task 1: add Milk 1 l
+Added Milk (1 l) to the fridge, expires 2026-12-01.
+  - Fridge: Perishable dairy product requires cold storage to stay safe (AI)
+  - Estimated 2026-12-01 (AI)
+...
+=== Task 4: I bought 6 eggs and used half of the spinach
+Agent: I've proposed adding 6 eggs to your fridge and using 100g of your spinach.
+  - Add 6 pcs eggs to the fridge
+  - Use 100 g of Spinach
+  Done: Add 6 pcs eggs to the fridge
+  Done: Use 100 g of Spinach
+
+=== Task 5: list
+  fridge   Chicken breast       500 g      expires 2026-11-26 (Expiring soon)
+  fridge   Milk                 1 l        expires 2026-12-01 (Fresh)
+  fridge   Spinach              100 g      expires 2026-12-01 (Fresh)
+  fridge   eggs                 6 pcs      expires 2026-12-22 (Fresh)
+
+=== Task 6: alerts
+  Expiring soon  Chicken breast (500 g), expires 2026-11-26
+
+=== Task 7: recipes 30
+1. Quick Chicken & Spinach Scramble (AI-written, about 15 min)
+   Why: Uses your expiring chicken breast and fresh spinach for a quick, high-protein meal.
+   Uses: Chicken breast, Spinach, eggs, Milk
+...
+Done: 7 task(s), 0 failed. AI (gemini): 16 call(s), 11707 input and 1572 output tokens.
+```
+
+This example uses about 16 AI calls. The free Gemini key allows about 20 calls per model per day; when a model runs out, the next model in `GEMINI_FALLBACK_MODELS` is used.
+
+## 7. Tests
 
 ```bash
 python -m pytest -q
@@ -117,7 +211,7 @@ python -m pytest -q
 
 The tests never call the real Gemini or TheMealDB APIs. They use a scripted fake LLM and fake recipe source.
 
-## 7. Features
+## 8. Features
 
 | ID | Feature | GUI page | CLI | AI |
 |---|---|---|---|---|
@@ -137,7 +231,7 @@ The tests never call the real Gemini or TheMealDB APIs. They use a scripted fake
 | F14 | Split shared costs | Costs | `costs` | no |
 | F15 | Offer and claim expiring items | Inventory, Notifications | `offer`, `claim`, `notifications` | no |
 
-## 8. Project layout
+## 9. Project layout
 
 ```
 server/
@@ -146,7 +240,8 @@ server/
   domain/          model (State pattern), services (Observer, Strategy), commands (Command)
   agent/           BaseAgent tool loop, RecipeAgent, MealPlanAgent, FridgeCommandAgent, ReceiptParser, tools
   infrastructure/  LLM adapters + LLMClientFactory, TheMealDB adapter, SQLite repositories
-cli/               typer CLI, FridgemateClient, TokenStore
+cli/               typer CLI, FridgemateClient, TokenStore; agent_cli.py = standalone agent CLI
+examples/          task.txt for the standalone agent CLI
 web/               React + TypeScript GUI
 tests/             pytest suite
 docs/              Stage 1 report and diagrams, design changes
