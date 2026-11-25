@@ -62,7 +62,7 @@ def test_bad_tasks_are_reported_and_exit_code_is_1(make, tmp_path):
     code, out = run(facade, ["add Milk lots", "plan 30", "receipt nowhere.txt", "alerts"])
     assert code == 1
     assert "Error: use: add <name> <amount> <unit>" in out
-    assert "Error: days must be between 1 and 7" in out
+    assert "Error: days must be between 3 and 5" in out
     assert "Error: receipt file not found" in out
     assert "Nothing is expiring soon." in out and "4 task(s), 3 failed" in out
 

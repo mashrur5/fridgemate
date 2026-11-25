@@ -147,7 +147,7 @@ The exit code is 0 when every task worked and 1 when any task failed. A bad task
 | `receipt <file>` | Read a receipt photo or `.txt` file and add its items (F03) |
 | `recipes [minutes]` | Recipe agent on what is in the fridge (F07, F08) |
 | `find <a, b, c>` | Recipes for the listed ingredients (F10) |
-| `plan [days]` | Waste-rescue meal plan for 1 to 7 days (F13) |
+| `plan [days]` | Waste-rescue meal plan for 3 to 5 days (F13) |
 | `shopping` | Show the shopping list (F11) |
 | anything else | Natural-language fridge agent, e.g. `I used 2 eggs` (F12) |
 

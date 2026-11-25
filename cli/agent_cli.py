@@ -40,7 +40,7 @@ Task lines (one per line, # starts a comment):
   receipt <file>                read a receipt photo or .txt file and add its items (F03)
   recipes [minutes]             recipe agent on what is in the fridge (F07, F08)
   find <a, b, c>                recipes for the ingredients you list (F10)
-  plan [days]                   waste-rescue meal plan, 1 to 7 days (F13)
+  plan [days]                   waste-rescue meal plan, 3 to 5 days (F13)
   shopping                      show the shopping list (F11)
   anything else                 natural-language fridge agent, e.g. "I used 2 eggs" (F12)
 """
@@ -169,7 +169,7 @@ class AgentRunner:
         self._print_recipes(self.facade.find_recipes(self.ctx, names, RecipeRequest()))
 
     def plan(self, args: str) -> None:
-        days = self._int(args, "days", 1, 7) if args else 3
+        days = self._int(args, "days", 3, 5) if args else 3
         plan = self.facade.plan_meals(self.ctx, days)
         for meal in plan.meals:
             if meal.suggestion is None:
